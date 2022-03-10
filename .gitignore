@@ -8,3 +8,5 @@
 *.swp
 *.out
 
+#PyCharm files to ignore
+.idea*
