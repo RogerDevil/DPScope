@@ -16,7 +16,7 @@ class DPScope(serial.Serial):
             endian = '!' #big
             arglen = struct.calcsize(endian+args)
             assert len(params) == arglen, "Wrong number of arguments, requires %s" % arglen
-            self.write(chr(cmd))
+            self.write(bytes(chr(cmd), "utf-8"))
             self.write(struct.pack(endian+args, *params))
 
             if ack:
@@ -44,11 +44,13 @@ class DPScope(serial.Serial):
     trig_source = _cmd(21, args='B')
     trig_pol = _cmd(22, args='B')
     def read_back(self, nob):
-        self.write(chr(23)+chr(nob))
+        self.write(bytes(chr(23)+chr(nob), "utf-8"))
         status = self.read()
         res = None
         if status:
-            res = map(ord, self.read(1+(2*nob)))
+            # res = map(ord, self.read(1+(2*nob)))
+            read_buffer = self.read(1+(2*nob))
+            res = [int(recv) for recv in read_buffer]
         assert self.inWaiting() == 0, "%s unexpected unread bytes" % self.inWaiting()
         return res
 
