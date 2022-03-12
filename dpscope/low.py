@@ -50,7 +50,7 @@ class DPScope(serial.Serial):
         if status:
             # res = map(ord, self.read(1+(2*nob)))
             read_buffer = self.read(1+(2*nob))
-            res = [int(recv) for recv in read_buffer]
+            res = [ord(char) for char in read_buffer.decode("utf-8")]
         assert self.inWaiting() == 0, "%s unexpected unread bytes" % self.inWaiting()
         return res
 
