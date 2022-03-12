@@ -1,8 +1,16 @@
 # DPScope
 
-I bought a DPScope for my electronic projects, but quickly found out it had only Windows software, but a relatively simple serial protocol.
+This is a driver for the 
+[DPScope II](http://dpscope.freevar.com/overview_ii.html) oscilloscope. It 
+had only Windows software, but a relatively simple serial protocol (see 
+[the download page](http://dpscope.freevar.com/downloads.html) for the 
+related DPScope).
 
-This software aims to pull data out of the device on any platform supported by matplotlib and PySerial.
+This software is branched from 
+[pepijndevos' code](https://github.com/pepijndevos/DPScope). It has been 
+updated to work with Python3, and as of 12/3/2022, this app currently 
+captures data in the Datalog mode, but does the measurements do not scale 
+accurately.
 
 ## Usage
 
