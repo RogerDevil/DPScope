@@ -142,8 +142,10 @@ Checkbutton(trigger, text="Noise reject").grid(sticky=W, row=1, column=3)
 
 
 pltr.scope = get_port(root)
-# defaults
-pltr.scope.trig_source(0)
-pltr.scope.adcon_from(0)
 
-root.mainloop()
+with pltr.scope as dpscope:
+    # defaults
+    dpscope.trig_source(0)
+    dpscope.adcon_from(0)
+
+    root.mainloop()
