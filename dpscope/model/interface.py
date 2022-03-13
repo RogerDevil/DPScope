@@ -92,5 +92,9 @@ class DPScopeInterface(object):
         """
         Closes connection to DPScope.
         """
-        _LOGGER.info("Closing connection to DPScope.")
-        self._conn.close()
+        if self._conn.isOpen():
+            _LOGGER.info("Closing connection to DPScope.")
+            self._conn.close()
+        else:
+            _LOGGER.info("DPScope connection is already closed. No further "
+                         "action required.")
