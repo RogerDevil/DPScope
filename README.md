@@ -8,9 +8,9 @@ related DPScope).
 
 This software is branched from 
 [pepijndevos' code](https://github.com/pepijndevos/DPScope). It has been 
-updated to work with Python3, and as of 12/3/2022, this app currently 
-captures data in the Datalog mode, but does the measurements do not scale 
-accurately.
+updated to work with Python3, and the long term goal of the project is to 
+provide full functionalities as per the windows software. Review the 
+release notes to see which features are currently working/not working.
 
 ## Usage
 

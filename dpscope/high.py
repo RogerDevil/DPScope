@@ -1,4 +1,4 @@
-from low import DPScope
+from model.interface import DPScopeInterface
 from numpy.fft import fft
 from multiprocessing.pool import ThreadPool
 from tkinter import BooleanVar
@@ -56,7 +56,7 @@ class Plotter(object):
 
     @scope.setter
     def scope(self, port):
-        self._scope = DPScope(port)
+        self._scope = DPScopeInterface(port)
 
     @property
     def both_channels(self):
