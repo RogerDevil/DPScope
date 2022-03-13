@@ -1,4 +1,4 @@
-from low import DPScopeInterface
+from model.interface import DPScopeInterface
 from numpy.fft import fft
 from multiprocessing.pool import ThreadPool
 from tkinter import BooleanVar
