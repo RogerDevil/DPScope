@@ -32,7 +32,7 @@ class GainBase(ABC):
         List of possible gains values and codes.
         """
 
-    def code_for_val(self, val):
+    def val_to_code(self, val):
         """
         Looks for gain code for a given gain value.
 
@@ -50,7 +50,7 @@ class GainBase(ABC):
                                           val))
         return filtered_gain[0]
 
-    def val_for_code(self, code):
+    def code_to_val(self, code):
         """
         Looks for gain value for a given gain code.
 
@@ -99,8 +99,9 @@ class VoltageCalc(object):
     """
     _interface = None  # Holds DPScope interface
     _usb_voltage = None  # Cache for storing the calculated USB voltage
-    gain = None  # Gain value, to be set exclusively from external code
-    pregain = None  # Pregain value, to be set exclusively from external code
+    gain = [None, None]  # Gain value, to be set exclusively from external code
+    pregain = [None, None]  # Pregain value, to be set exclusively from
+    # external code
 
     def __init__(self, interface):
         """
@@ -140,11 +141,14 @@ class VoltageCalc(object):
             [float, float]: Channel 1, channel 2 voltages.
         """
         adc_vals = self._interface.read_adc()
-        multiplier = (self.USB_voltage/5.) * (20./256) * (self.pregain *
-                                                          self.gain)
-        voltages = [multiplier * adc for adc in adc_vals]
-        if len(voltages) != 2:
-            raise CommsException("There should be 2 voltages returned by "
+        if len(adc_vals) != 2:
+            raise CommsException("There should be 2 ADC values returned by "
                                  "DPScope. Received '{}' instead."
-                                 "".format(voltages))
+                                 "".format(adc_vals))
+        voltages = []
+        for ch, adc in enumerate(adc_vals):
+            multiplier = ((self.USB_voltage/5.)*(20./256)
+                          * (self.pregain[ch]*self.gain[ch]))
+            voltages.append(multiplier * adc)
+
         return voltages

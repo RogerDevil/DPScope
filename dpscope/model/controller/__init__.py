@@ -21,8 +21,6 @@ class DPScopeController(object):
     # command to DPScope).
     _voltage_calc = None  # Holds the converter from raw readings to voltages.
 
-    _gain = None  # gain codes for 2 channels, stored as a list
-
     @property
     def usb_voltage(self):
         """
@@ -30,26 +28,6 @@ class DPScopeController(object):
             float: USB voltage.
         """
         return self._voltage_calc.usb_voltage
-
-    @property
-    def gain(self):
-        """
-        Reads gain from DPScope.
-
-        Returns:
-            [int, int]: Channel 1, channel 2 gain values
-        """
-
-    @gain.setter
-    def gain(self, gains):
-        """
-        Sets gain into DPScope.
-
-        Also sets gain value in the voltage calculator.
-
-        Args:
-            gains ([int, int]): Gain for the 2 channels.
-        """
 
     def __init__(self, port):
         """
@@ -60,3 +38,41 @@ class DPScopeController(object):
         """
         self._interface = DPScopeInterface(port=port)
         self._voltage_calc = VoltageCalc(self._interface)
+
+    def gain_get(self, ch):
+        """
+        Reads gain from DPScope.
+
+        Updates the gain value in the voltage calculator if required.
+
+        Args:
+            ch (int): Channel number (0 or 1).
+
+        Returns:
+            int: Gain factor for the requested channel.
+        """
+        try:
+            if self._voltage_calc.gain[ch] is None:
+                self.gain_set(ch, 1)
+        except IndexError as ie:
+            raise ie("Attempting to set gain on channel {}; Channel "
+                     "specifier can only be (0, 1).".format(ch))
+        return self._voltage_calc.gain[ch]
+
+    def gain_set(self, ch, gain):
+        """
+        Sets gain into DPScope.
+
+        Also sets gain value in the voltage calculator.
+
+        Args:
+            ch (int): Channel number (0 or 1).
+            gain (int): Gain factor for the requested channel.
+        """
+        gain_convert = Gain()
+        gain_factor = gain_convert.code_to_val(self._interface.gain(ch, gain))
+        try:
+            self._voltage_calc.gain[ch] = gain_factor
+        except IndexError as ie:
+            raise ie("Attempting to set gain on channel {}; Channel "
+                     "specifier can only be (0, 1).".format(ch))
