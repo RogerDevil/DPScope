@@ -141,5 +141,3 @@ class Plotter(object):
         self.plt.relim()
         self.plt.autoscale_view()
         self.fig.canvas.draw()
-
-

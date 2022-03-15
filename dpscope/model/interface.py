@@ -10,9 +10,13 @@ _LOGGER = logging.getLogger(__name__)
 
 class DPScopeInterface(object):
     """
-    Interface for DPScope.
+    Interface for all DPScope commands.
 
-    Exposes all API methods.
+    Exposes all API methods. The DPSCope has a microcontroller that accepts
+    commands sent from a serial interface. Each command sequence is
+    initiated by a different command number. This class is responsible for
+    formatting the command data packet for every command available, sending
+    it, and receiving any data from the DPScope.
     """
     _conn = None  # serial connection to DPScope.
 
