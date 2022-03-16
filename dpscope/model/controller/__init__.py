@@ -1,7 +1,9 @@
 import logging
 
 from model.interface import DPScopeInterface
-from helper import VoltageCalc, Gain, PreGain
+from helper import VoltageCalc
+from helper.gain import Gain, PreGain
+from helper.poll import make_poll, PollType
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -20,6 +22,7 @@ class DPScopeController(object):
     _interface = None  # Holds the interface to DPScope (sends serial
     # command to DPScope).
     _voltage_calc = None  # Holds the converter from raw readings to voltages.
+    _poll_controller = None  # Holds the controller for implementing polling.
 
     @property
     def usb_voltage(self):
@@ -38,6 +41,25 @@ class DPScopeController(object):
         """
         self._interface = DPScopeInterface(port=port)
         self._voltage_calc = VoltageCalc(self._interface)
+        self.poll_type_set(PollType.Time)
+
+    def poll_type_set(self, poll_type):
+        """
+        Sets the polling mode.
+
+        Args:
+            poll_type (PollType): Time or fft.
+        """
+        self._poll_controller = make_poll(poll_type)
+
+    def poll(self):
+        """
+        Make an instantaneous polling measurement and returns data.
+
+        Returns:
+            list(int), list(int): Channel 1, channel 2 results lists.
+        """
+        return self._poll_controller.do()
 
     def gain_get(self, ch):
         """
