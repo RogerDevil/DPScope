@@ -137,7 +137,7 @@ class PollFft(PollBase):
         """
         Sends the arm_fft DPScope command.
         """
-        self.interface.arm_fft()
+        self.interface.arm_fft(0, 1)  # Measures ch1 immediately.
 
     @classmethod
     def _parse(cls, data):
@@ -153,6 +153,7 @@ class PollFft(PollBase):
         # Strips first byte
         data = data[1:]
         # bytes data is arranged in form:
-        # CH1 val1, CH1 val2, CH1 val3,..., CH2 val1, CH2 val2, CH2 val3,...
+        # CH1 val1, CH1 val2, CH1 val3,... with twice as much data as time
+        # polling.
         split_index = len(data)/2 + 1
         return data[0:split_index], data[split_index:]

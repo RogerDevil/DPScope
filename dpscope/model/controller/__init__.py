@@ -1,9 +1,10 @@
 import logging
 
 from model.interface import DPScopeInterface
-from helper import VoltageCalc
+from model.controller.helper.voltage_measure import VoltageSingleRead
 from helper.gain import Gain, PreGain
 from helper.poll import make_poll, PollType
+from helper.trigger import TriggerSettings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -21,16 +22,9 @@ class DPScopeController(object):
     """
     _interface = None  # Holds the interface to DPScope (sends serial
     # command to DPScope).
-    _voltage_calc = None  # Holds the converter from raw readings to voltages.
+    voltages = None  # Single voltage measurer.
     _poll_controller = None  # Holds the controller for implementing polling.
-
-    @property
-    def usb_voltage(self):
-        """
-        Returns:
-            float: USB voltage.
-        """
-        return self._voltage_calc.usb_voltage
+    trigger = None  # Trigger settings manager.
 
     def __init__(self, port):
         """
@@ -40,8 +34,25 @@ class DPScopeController(object):
             port (int): Port num to create socket with.
         """
         self._interface = DPScopeInterface(port=port)
-        self._voltage_calc = VoltageCalc(self._interface)
+        self.voltages = VoltageSingleRead(self._interface)
         self.poll_type_set(PollType.Time)
+        self.trigger = TriggerSettings(self._interface)
+
+    def __enter__(self):
+        """
+        Opens connection to DPScope.
+
+        Returns:
+            This instance of controller
+        """
+        self._interface.open()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Closes connection.
+        """
+        self._interface.close()
 
     def poll_type_set(self, poll_type):
         """
@@ -74,12 +85,12 @@ class DPScopeController(object):
             int: Gain factor for the requested channel.
         """
         try:
-            if self._voltage_calc.gain[ch] is None:
+            if self.voltages.gain[ch] is None:
                 self.gain_set(ch, 1)
         except IndexError as ie:
             raise ie("Attempting to set gain on channel {}; Channel "
                      "specifier can only be (0, 1).".format(ch))
-        return self._voltage_calc.gain[ch]
+        return self.voltages.gain[ch]
 
     def gain_set(self, ch, gain):
         """
@@ -94,7 +105,16 @@ class DPScopeController(object):
         gain_convert = Gain()
         gain_factor = gain_convert.code_to_val(self._interface.gain(ch, gain))
         try:
-            self._voltage_calc.gain[ch] = gain_factor
+            self.voltages.gain[ch] = gain_factor
         except IndexError as ie:
             raise ie("Attempting to set gain on channel {}; Channel "
                      "specifier can only be (0, 1).".format(ch))
+
+    def volt_read(self):
+        """
+        Read ADC values for both channels, and convert to voltage
+
+        Returns:
+            [float, float]: Channel 1, channel 2 voltages.
+        """
+        return self.voltages.read()

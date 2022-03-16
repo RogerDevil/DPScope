@@ -8,6 +8,8 @@ from tkinter import (Tk, Frame, LabelFrame, BOTH, Button, Label, Spinbox, X,
                      OptionMenu, Radiobutton, HORIZONTAL, IntVar, E)
 
 import high
+from model.controller.helper.trigger import TriggerSource
+from model.controller.helper.voltage_measure import VoltageResolution
 
 root = Tk()
 root.title("DPScope")
@@ -23,7 +25,7 @@ class Datalogger(high.Task):
         self.ch2 = []
 
     def task(self):
-        data = ch1, ch2 = pltr.read_volt()
+        data = ch1, ch2 = pltr.volt_read()
         self.ch1.append(ch1)
         self.ch2.append(ch2)
         pltr.plot([], self.ch1, [], self.ch2)
@@ -145,7 +147,7 @@ pltr.scope = get_port(root)
 
 with pltr.scope as dpscope:
     # defaults
-    dpscope.trig_source(0)
-    dpscope.adcon_from(0)
+    dpscope.trigger.source = TriggerSource.auto
+    dpscope.voltages.resolution = VoltageResolution.low
 
     root.mainloop()
