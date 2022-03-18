@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 _LOGGER = logging.getLogger(__name__)
 
 
-Gain = namedtuple('Gain', ['code', 'val'])
+GainType = namedtuple('GainType', ['code', 'val'])
 
 
 class GainException(Exception):
@@ -20,12 +20,7 @@ class GainBase(ABC):
     """
     Defines API for converting gains between codes and values.
     """
-    @abstractmethod
-    @property
-    def set(self):
-        """
-        List of possible gains values and codes.
-        """
+    set = None
 
     def val_to_code(self, val):
         """
@@ -68,14 +63,14 @@ class Gain(GainBase):
     """
     Manages gain codes and values.
     """
-    set = [Gain(code=0, val=1),
-           Gain(code=1, val=2),
-           Gain(code=2, val=4),
-           Gain(code=3, val=5),
-           Gain(code=4, val=8),
-           Gain(code=5, val=10),
-           Gain(code=6, val=16),
-           Gain(code=7, val=32)
+    set = [GainType(code=0, val=1),
+           GainType(code=1, val=2),
+           GainType(code=2, val=4),
+           GainType(code=3, val=5),
+           GainType(code=4, val=8),
+           GainType(code=5, val=10),
+           GainType(code=6, val=16),
+           GainType(code=7, val=32)
            ]
 
 
@@ -83,6 +78,6 @@ class PreGain(GainBase):
     """
     Manages pregain codes and values.
     """
-    set = [Gain(code=0, val=1),
-           Gain(code=1, val=10)
+    set = [GainType(code=0, val=1),
+           GainType(code=1, val=10)
            ]

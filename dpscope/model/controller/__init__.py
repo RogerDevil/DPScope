@@ -2,9 +2,9 @@ import logging
 
 from model.interface import DPScopeInterface
 from model.controller.helper.voltage_measure import VoltageSingleRead
-from helper.gain import Gain, PreGain
-from helper.poll import make_poll, PollType
-from helper.trigger import TriggerSettings
+from model.controller.helper.gain import Gain, PreGain
+from model.controller.helper.poll import make_poll, PollType
+from model.controller.helper.trigger import TriggerSettings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -61,7 +61,7 @@ class DPScopeController(object):
         Args:
             poll_type (PollType): Time or fft.
         """
-        self._poll_controller = make_poll(poll_type)
+        self._poll_controller = make_poll(poll_type, self._interface)
 
     def poll(self):
         """
@@ -100,10 +100,13 @@ class DPScopeController(object):
 
         Args:
             ch (int): Channel number (0 or 1).
-            gain (int): Gain factor for the requested channel.
+            gain (int): Gain code for the requested channel.
         """
+        # Sends DPScope command for setting the gain
+        self._interface.gain(ch, gain)
+        # Set gain factor value in logic
         gain_convert = Gain()
-        gain_factor = gain_convert.code_to_val(self._interface.gain(ch, gain))
+        gain_factor = gain_convert.code_to_val(gain)
         try:
             self.voltages.gain[ch] = gain_factor
         except IndexError as ie:
@@ -118,3 +121,44 @@ class DPScopeController(object):
             [float, float]: Channel 1, channel 2 voltages.
         """
         return self.voltages.read()
+
+    def pregain_get(self, ch):
+        """
+        Reads pregain from DPScope.
+
+        Updates the pregain value in the voltage calculator if required.
+
+        Args:
+            ch (int): Channel number (0 or 1).
+
+        Returns:
+            int: Pregain factor for the requested channel.
+        """
+        try:
+            if self.voltages.pregain[ch] is None:
+                self.pregain_set(ch, 1)
+        except IndexError as ie:
+            raise ie("Attempting to set gain on channel {}; Channel "
+                     "specifier can only be (0, 1).".format(ch))
+        return self.voltages.pregain[ch]
+
+    def pregain_set(self, ch, pregain):
+        """
+        Sets pregain into DPScope.
+
+        Also sets pregain value in the voltage calculator.
+
+        Args:
+            ch (int): Channel number (0 or 1).
+            pregain (int): Pregain code for the requested channel.
+        """
+        # Sends DPScope command to set pregain.
+        self._interface.pre_gain(ch, pregain)
+        # Set pregain code in logic.
+        pregain_convert = PreGain()
+        pregain_factor = pregain_convert.code_to_val(pregain)
+        try:
+            self.voltages.pregain[ch] = pregain_factor
+        except IndexError as ie:
+            raise ie("Attempting to set gain on channel {}; Channel "
+                     "specifier can only be (0, 1).".format(ch))

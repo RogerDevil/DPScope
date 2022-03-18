@@ -4,6 +4,7 @@ Implements various polling modes.
 import logging
 from abc import ABC, abstractmethod
 from enum import Enum
+from functools import total_ordering
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -16,10 +17,14 @@ class InvalidPollType(Exception):
     """
 
 
+@total_ordering
 class PollType(Enum):
     Time = 0
     Fft = 1
     LIMIT = 2
+
+    def __lt__(self, other):
+        return self.value[0] < other.value
 
 
 def make_poll(poll_type, interface):

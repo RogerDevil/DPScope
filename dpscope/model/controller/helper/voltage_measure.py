@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import total_ordering
 import logging
 
 from model.command import CommsException
@@ -14,10 +15,14 @@ class ResolutionSettingsException(Exception):
     """
 
 
+@total_ordering
 class VoltageResolution(Enum):
     high = 0,  # high resolution, for a max of 1/4 of full range
     low = 1,  # 1/4 resolution, but can measure full range
     LIMIT = 2
+
+    def __lt__(self, other):
+        return self.value[0] < other.value
 
 
 class VoltageSingleRead(object):
@@ -26,8 +31,9 @@ class VoltageSingleRead(object):
     """
     _interface = None  # Holds DPScope interface
     _usb_voltage = None  # Cache for storing the calculated USB voltage
-    gain = [None, None]  # Gain value, to be set exclusively from external code
-    pregain = [None, None]  # Pregain value, to be set exclusively from
+    gain = [None, None]  # Gain factor, to be set exclusively from external
+    # code
+    pregain = [None, None]  # Pregain factor, to be set exclusively from
     # external code
     _resolution = None  # ADC resolution
 
@@ -64,11 +70,9 @@ class VoltageSingleRead(object):
                                               "or 'high'. Requested "
                                               "resolution is '{}'."
                                               "".format(adc_res))
-        self._interface.adcon_from(adc_res)
+        self._interface.adcon_from(adc_res.value[0])
         self._resolution = adc_res
-        _LOGGER.info("ADC resolution set to '{}'."
-                     "".format("low" if adc_res == VoltageResolution.low
-                               else "high"))
+        _LOGGER.info("ADC resolution set to '{}'.".format(adc_res))
 
     @property
     def usb(self):
@@ -105,7 +109,7 @@ class VoltageSingleRead(object):
                                  "".format(adc_vals))
         voltages = []
         for ch, adc in enumerate(adc_vals):
-            multiplier = ((self.USB_voltage/5.)*(20./256)
+            multiplier = ((self.usb/5.)*(20./256)
                           * (self.pregain[ch]*self.gain[ch]))
             voltages.append(multiplier * adc)
 

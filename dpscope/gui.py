@@ -149,5 +149,9 @@ with pltr.scope as dpscope:
     # defaults
     dpscope.trigger.source = TriggerSource.auto
     dpscope.voltages.resolution = VoltageResolution.low
+    dpscope.gain_set(0, 0)
+    dpscope.gain_set(1, 0)
+    dpscope.pregain_set(0, 0)
+    dpscope.pregain_set(1, 0)
 
     root.mainloop()

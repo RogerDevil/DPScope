@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+from functools import total_ordering
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -12,7 +13,14 @@ class TriggerSettingsException(Exception):
     """
 
 
-class TriggerSource(Enum):
+@total_ordering
+class OrderedEnum(Enum):
+    def __lt__(self, other):
+        return self.value[0] < other.value
+
+
+@total_ordering
+class TriggerSource(OrderedEnum):
     """
     Trigger source types
     """
@@ -22,7 +30,8 @@ class TriggerSource(Enum):
     LIMIT = 3
 
 
-class TriggerPol(Enum):
+@total_ordering
+class TriggerPol(OrderedEnum):
     """
     Trigger polarisation
     """
@@ -72,7 +81,7 @@ class TriggerSettings(object):
                                            "'auto', 'channel 1', 'channel "
                                            "2'. Requested trigger source = "
                                            "{}".format(trigger_src))
-        self._interface.trig_source(trigger_src)
+        self._interface.trig_source(trigger_src.value[0])
         self._source = trigger_src
         _LOGGER.info("Trigger source set to '{}'.".format(trigger_src))
 
@@ -103,5 +112,4 @@ class TriggerSettings(object):
         self._interface.trig_pol(trigger_pol)
         self._pol = trigger_pol
         _LOGGER.info("Trigger polarisation set to '{}'."
-                     "".format("rising" if trigger_pol == TriggerPol.rising
-                               else "falling"))
+                     "".format(trigger_pol))
