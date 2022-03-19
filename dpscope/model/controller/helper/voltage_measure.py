@@ -82,16 +82,25 @@ class VoltageSingleRead(object):
             already been calculated).
         """
         if not self._usb_voltage:
+            old_res = self.resolution
+            dac_mV = 3000
             self.resolution = VoltageResolution.high
-            self._interface.set_dac(0, 3000)
-            self._interface.set_dac(1, 3000)
-            real_dac = sum(self._interface.measure_offset()) / 2
+            # The Set DAC DPScope commands actually works different from
+            # documentation.
+            self._interface.set_dac(0, dac_mV)
+            self._interface.set_dac(1, dac_mV)
+            adcs = self._interface.measure_offset()
+            real_dac = sum(adcs) / 2
+            _LOGGER.info("Measured ADC offsets = '{}' for DAC output = '{}"
+                         "mV'".format(adcs, dac_mV))
             self._interface.set_dac(0, 0)
             self._interface.set_dac(1, 0)
-            nominal_dac = 3. * (1023 / 5.)
+            nominal_dac = float(dac_mV)/1000 * (256 / 1.25)
             self._usb_voltage = 5. * (nominal_dac / real_dac)
             _LOGGER.info("Real USB voltage measured to be {}."
-                         "".format(real_dac))
+                         "".format(self._usb_voltage))
+            if old_res != self.resolution:
+                self.resolution = old_res
 
         return self._usb_voltage
 
@@ -102,6 +111,12 @@ class VoltageSingleRead(object):
         Returns:
             [float, float]: Channel 1, channel 2 voltages.
         """
+        max_adc = 255  # Max possible value for the 8-bit ADC
+        # Factor to take into account of pot at probe entry point.
+        pot_ratio = 4
+        # Maximum voltage range given the resolution setting.
+        max_V = (self.usb if self.resolution == VoltageResolution.low
+                 else self.usb / 4)
         adc_vals = self._interface.read_adc()
         if len(adc_vals) != 2:
             raise CommsException("There should be 2 ADC values returned by "
@@ -109,7 +124,7 @@ class VoltageSingleRead(object):
                                  "".format(adc_vals))
         voltages = []
         for ch, adc in enumerate(adc_vals):
-            multiplier = ((self.usb/5.)*(20./256)
+            multiplier = ((max_V * pot_ratio / max_adc)
                           * (self.pregain[ch]*self.gain[ch]))
             voltages.append(multiplier * adc)
 

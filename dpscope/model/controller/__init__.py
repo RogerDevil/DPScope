@@ -109,6 +109,8 @@ class DPScopeController(object):
         gain_factor = gain_convert.code_to_val(gain)
         try:
             self.voltages.gain[ch] = gain_factor
+            _LOGGER.info("Setting channel '{}' gain code to '{}' (x{})"
+                         "".format(ch, gain, gain_factor))
         except IndexError as ie:
             raise ie("Attempting to set gain on channel {}; Channel "
                      "specifier can only be (0, 1).".format(ch))
@@ -159,6 +161,8 @@ class DPScopeController(object):
         pregain_factor = pregain_convert.code_to_val(pregain)
         try:
             self.voltages.pregain[ch] = pregain_factor
+            _LOGGER.info("Setting channel '{}' pre-gain code to '{}' (x{})"
+                         "".format(ch, pregain, pregain_factor))
         except IndexError as ie:
             raise ie("Attempting to set gain on channel {}; Channel "
                      "specifier can only be (0, 1).".format(ch))
