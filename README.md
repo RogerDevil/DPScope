@@ -1,10 +1,10 @@
 # DPScope
 
 This is a driver for the 
-[DPScope II](http://dpscope.freevar.com/overview_ii.html) oscilloscope. It 
+[DPScope I](http://dpscope.freevar.com/overview.html) oscilloscope. It 
 had only Windows software, but a relatively simple serial protocol (see 
 [the download page](http://dpscope.freevar.com/downloads.html) for the 
-related DPScope).
+scope).
 
 This software is branched from 
 [pepijndevos' code](https://github.com/pepijndevos/DPScope). It has been 
