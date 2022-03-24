@@ -111,6 +111,23 @@ class StandardViewBuilder(ViewBuilderBase):
                command=
                lambda event: self._view.observers_notify(label)).pack(fill=X)
 
+    def _add_checkbox(self, container, label, row, col=0):
+        """
+        Adds checkbox in GUI.
+
+        Also adds boolean variable types in View to store the checkbox values.
+
+        Args:
+            container (LabelFrame): The frame that holds the checkbox.
+            label (str): The checkbox label.
+            row (int): Row position in frame (0-indexed).
+            col (int): Column position in frame (0-indexed).
+        """
+        self._view.signals.update({label: BooleanVar()})
+        Checkbutton(container, text=label,
+                    variable=self._view.signals[label]
+                    ).grid(sticky=W, row=row, column=col)
+
     def make_window(self):
         """
         Creates Tkinter window and embed a matplotlib Figure().
@@ -163,3 +180,22 @@ class StandardViewBuilder(ViewBuilderBase):
               ).grid(sticky=E, row=1, column=1)
         Scale(self._view.lvl_adj, from_=-100, to=100, length=300
               ).grid(sticky=E, row=1, column=2)
+
+    def build_display_controls(self):
+        """
+        Add channel select, xy, fft checkboxes.
+        """
+        self._view.disp_ctrl = LabelFrame(self._ctrl_right, text="Display")
+        self._view.disp_ctrl.pack(fill=BOTH, expand=1)
+
+        self._add_checkbox(self._view.disp_ctrl, "Ch1", 0)
+        self._add_checkbox(self._view.disp_ctrl, "Ch2", 1)
+        self._add_checkbox(self._view.disp_ctrl, "X/Y", 2)
+        self._add_checkbox(self._view.disp_ctrl, "FFT", 3)
+
+    def build_vertical_controls(self):
+        """
+        Adds voltage scaling combo box; radio button for probe attenuation.
+        """
+        self._view.vert_ctrl = LabelFrame(self._ctrl_right, text="Vertical")
+        self._view.vert_ctrl.pack(fill=BOTH, expand=1)

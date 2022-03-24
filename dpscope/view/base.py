@@ -31,6 +31,9 @@ class View(object):
     # Define different observer channels
     observers = {}
 
+    # Holds user signals
+    signals = {}
+
     def show(self):
         """
         Open app window.
