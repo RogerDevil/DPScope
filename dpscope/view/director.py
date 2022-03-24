@@ -41,6 +41,7 @@ class Director(object):
     def get_view(self):
         """
         Returns:
-            view.base.View: The specific app View, as defined by the View builder.
+            view.base.View: The specific app View, as defined by the View
+            builder.
         """
         return self._builder.get_view()
