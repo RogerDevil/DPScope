@@ -15,7 +15,7 @@ from tkinter import (Tk, Frame, LabelFrame, BOTH, Button, Label, Spinbox, X,
 from view.base import View
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 
 
