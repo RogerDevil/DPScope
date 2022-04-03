@@ -30,7 +30,7 @@ stopfn = lambda: None
 
 def start():
     global stopfn
-    if view.signals['Horizontal.sample_mode'] in "Datalog mode":
+    if "Datalog mode" in view.signals['Horizontal.sample_mode']:
         dl = Datalogger(view.window, 100)
         stopfn = dl.stop
         dl.start()
