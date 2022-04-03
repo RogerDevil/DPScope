@@ -185,7 +185,7 @@ class StandardViewBuilder(ViewBuilderBase):
         """
         signal_name = self._make_name(container, label)
         self._view.signals.update({signal_name: StringVar()})
-        self._view.observers.update({signal_name: []})
+        self._view.observers.update({signal_name: set()})
         OptionMenu(container, self._view.signals[signal_name], *options,
                    command=
                    lambda event: self._view.observers_notify(signal_name)
@@ -208,7 +208,7 @@ class StandardViewBuilder(ViewBuilderBase):
         """
         signal_name = self._make_name(container, label)
         self._view.signals.update({signal_name: StringVar()})
-        self._view.observers.update({signal_name: []})
+        self._view.observers.update({signal_name: set()})
         for button in options:
             Radiobutton(container, text=button.text, variable=signal_name,
                         value=button.text,
