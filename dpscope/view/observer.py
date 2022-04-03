@@ -20,6 +20,15 @@ class ViewObserverBase(ABC):
     _view = None
     _controller = None
 
+    @property
+    @abstractmethod
+    def channel(self):
+        """
+        Returns:
+            str: The observer channel name that the current instance should
+            be attached to.
+        """
+
     def __init__(self, view, controller):
         """
         Instantiate with views and controller from MVC design pattern.
@@ -42,29 +51,37 @@ class StartObserver(ViewObserverBase):
     """
     Reacting to Start activation.
     """
+    channel = "Acquisition.Start"
+
     def update(self):
         _LOGGER.info("Start button pressed")
 
 
 class StopObserver(ViewObserverBase):
     """
-    Reacting to Start activation.
+    Reacting to Stop activation.
     """
+    channel = "Acquisition.Stop"
+
     def update(self):
         _LOGGER.info("Stop button pressed")
 
 
 class PollObserver(ViewObserverBase):
     """
-    Reacting to Start activation.
+    Reacting to Poll activation.
     """
+    channel = "Acquisition.Poll"
+
     def update(self):
         _LOGGER.info("Poll button pressed")
 
 
 class ClearObserver(ViewObserverBase):
     """
-    Reacting to Start activation.
+    Reacting to Clear activation.
     """
+    channel = "Acquisition.Clear"
+
     def update(self):
         _LOGGER.info("Clear bcsutton pressed")
