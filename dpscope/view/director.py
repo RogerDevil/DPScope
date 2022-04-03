@@ -24,12 +24,12 @@ class Director(object):
         """
         self._builder = view_builder
 
-    def build_view(self):
+    def view_build(self):
         """
         Calls the view building sequence.
         """
-        self._builder.make_view()
-        self._builder.make_window()
+        self._builder.view_make()
+        self._builder.window_make()
         self._builder.build_plot_area()
         self._builder.build_acquisition_controls()
         self._builder.build_level_adjusts()
@@ -38,10 +38,10 @@ class Director(object):
         self._builder.build_horizontal_controls()
         self._builder.build_trigger_controls()
 
-    def get_view(self):
+    def view_get(self):
         """
         Returns:
             view.base.View: The specific app View, as defined by the View
             builder.
         """
-        return self._builder.get_view()
+        return self._builder.view_get()

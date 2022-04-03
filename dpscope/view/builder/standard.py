@@ -34,7 +34,7 @@ class ViewBuilderBase(ABC):
     _view = None  # Holds the View object
 
     @abstractmethod
-    def make_window(self):
+    def window_make(self):
         """
         Creates the app window/frame.
         """
@@ -81,13 +81,13 @@ class ViewBuilderBase(ABC):
         Build trigger controls.
         """
 
-    def make_view(self):
+    def view_make(self):
         """
         Instantiates a View.
         """
         self._view = View()
 
-    def get_view(self):
+    def view_get(self):
         """
         Returns:
             View: The app View.
@@ -131,11 +131,13 @@ class StandardViewBuilder(ViewBuilderBase):
             label (str): The button label.
         """
         signal_name = self._make_name(container, label)
-        self._view.observers.update({signal_name: []})
+        self._view.observers.update({signal_name: set()})
         Button(container, text=label,
                command=
                lambda event: self._view.observers_notify(
                    signal_name)).pack(fill=X)
+        _LOGGER.debug("Added button '{}' with accompanying signal."
+                      "".format(signal_name))
 
     def _add_checkbox(self, container, label, row, col=0, **grid_opt):
         """
@@ -154,12 +156,14 @@ class StandardViewBuilder(ViewBuilderBase):
         """
         signal_name = self._make_name(container, label)
         self._view.signals.update({signal_name: BooleanVar()})
-        self._view.observers.update({signal_name: []})
+        self._view.observers.update({signal_name: set()})
         Checkbutton(container, text=label,
                     variable=self._view.signals[signal_name],
                     command=
                     lambda event: self._view.observers_notify(signal_name)
                     ).grid(sticky=W, row=row, column=col, **grid_opt)
+        _LOGGER.debug("Added checkbutton '{}' with accompanying signals and "
+                      "observer queue.".format(signal_name))
 
     def _add_option_menu(self, container, label, options, row, column,
                          **grid_opt):
@@ -187,6 +191,8 @@ class StandardViewBuilder(ViewBuilderBase):
                    lambda event: self._view.observers_notify(signal_name)
                    ).grid(sticky=W, row=row, column=column, **grid_opt)
         self._view.signals[signal_name].set(options[0])
+        _LOGGER.debug("Added option menu '{}' with accompanying signal and "
+                      "observer queue.".format(signal_name))
 
     def _add_radio_button(self, container, label, options):
         """
@@ -209,8 +215,10 @@ class StandardViewBuilder(ViewBuilderBase):
                         command=
                         lambda event: self._view.observers_notify(signal_name)
                         ).grid(sticky=W, row=button.row, column=button.column)
+        _LOGGER.debug("Added radio button group '{}' with accompanying "
+                      "signal and observer queue.".format(signal_name))
 
-    def make_window(self):
+    def window_make(self):
         """
         Creates Tkinter window and embed a matplotlib Figure().
         """
@@ -327,3 +335,28 @@ class StandardViewBuilder(ViewBuilderBase):
                            columnspan=2)
         Scale(self._view.hor_ctrl, from_=0, to=100, length=200,
               orient=HORIZONTAL).grid(sticky=W, row=3, column=0, columnspan=2)
+
+    def build_trigger_controls(self):
+        """
+        Adds radio buttons for selecting trigger source and polarity,
+        and checkbox option for Noise Reject.
+        """
+        self._view.trig_ctrl = LabelFrame(self._ctrl_right, text="Trigger")
+        self._view.trig_ctrl.pack(fill=BOTH, expand=1)
+
+        Label(self._view.trig_ctrl, text="Source").grid(sticky=W, row=0,
+                                                        column=0)
+        trig_src_options = [RadioBtnSubOptions("Auto", 0, 1),
+                            RadioBtnSubOptions("Ch1", 0, 2),
+                            RadioBtnSubOptions("Ch2", 0, 3)]
+        self._add_radio_button(self._view.trig_ctrl, "source",
+                               trig_src_options)
+
+        Label(self._view.trig_ctrl, text="Polarity").grid(sticky=W, row=1,
+                                                          column=0)
+        trig_pol_options = [RadioBtnSubOptions("Rising", 1, 1),
+                            RadioBtnSubOptions("Falling", 1, 2)]
+        self._add_radio_button(self._view.trig_ctrl, "pol",
+                               trig_pol_options)
+
+        self._add_checkbox(self._view.trig_ctrl, "Noise reject", 1, 3)

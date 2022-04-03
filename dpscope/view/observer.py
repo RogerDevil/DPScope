@@ -66,4 +66,4 @@ class ClearObserver(ViewObserverBase):
     Reacting to Start activation.
     """
     def update(self):
-        _LOGGER.info("Clear button pressed")
+        _LOGGER.info("Clear bcsutton pressed")
