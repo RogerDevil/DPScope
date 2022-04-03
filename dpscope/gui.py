@@ -1,3 +1,5 @@
+import logging
+
 from portselect import get_port
 
 import high
@@ -5,6 +7,12 @@ from model.controller.helper.trigger import TriggerSource
 from model.controller.helper.voltage_measure import VoltageResolution
 from view.director import Director
 from view.builder.standard import StandardViewBuilder
+
+
+logging.basicConfig(level=logging.DEBUG)
+_LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.DEBUG)
+
 
 class Datalogger(high.Task):
     def __init__(self, widget, interval):

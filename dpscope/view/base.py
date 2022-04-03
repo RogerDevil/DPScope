@@ -6,8 +6,9 @@ import logging
 # Set up logging
 from view.observer import ObserverTypeException
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.DEBUG)
 
 
 class View(object):

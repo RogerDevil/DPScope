@@ -17,6 +17,7 @@ from view.base import View
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.DEBUG)
 
 
 matplotlib.use('TkAgg')
@@ -134,7 +135,7 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.observers.update({signal_name: set()})
         Button(container, text=label,
                command=
-               lambda event: self._view.observers_notify(
+               lambda: self._view.observers_notify(
                    signal_name)).pack(fill=X)
         _LOGGER.debug("Added button '{}' with accompanying signal."
                       "".format(signal_name))
@@ -160,7 +161,7 @@ class StandardViewBuilder(ViewBuilderBase):
         Checkbutton(container, text=label,
                     variable=self._view.signals[signal_name],
                     command=
-                    lambda event: self._view.observers_notify(signal_name)
+                    lambda: self._view.observers_notify(signal_name)
                     ).grid(sticky=W, row=row, column=col, **grid_opt)
         _LOGGER.debug("Added checkbutton '{}' with accompanying signals and "
                       "observer queue.".format(signal_name))
@@ -188,7 +189,7 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.observers.update({signal_name: set()})
         OptionMenu(container, self._view.signals[signal_name], *options,
                    command=
-                   lambda event: self._view.observers_notify(signal_name)
+                   lambda: self._view.observers_notify(signal_name)
                    ).grid(sticky=W, row=row, column=column, **grid_opt)
         self._view.signals[signal_name].set(options[0])
         _LOGGER.debug("Added option menu '{}' with accompanying signal and "
@@ -213,7 +214,7 @@ class StandardViewBuilder(ViewBuilderBase):
             Radiobutton(container, text=button.text, variable=signal_name,
                         value=button.text,
                         command=
-                        lambda event: self._view.observers_notify(signal_name)
+                        lambda: self._view.observers_notify(signal_name)
                         ).grid(sticky=W, row=button.row, column=button.column)
         _LOGGER.debug("Added radio button group '{}' with accompanying "
                       "signal and observer queue.".format(signal_name))
@@ -222,6 +223,8 @@ class StandardViewBuilder(ViewBuilderBase):
         """
         Creates Tkinter window and embed a matplotlib Figure().
         """
+        _LOGGER.info("Creating '{}' app window - standard view."
+                     "".format(self.window_title))
         self._view.window = Tk()
         self._view.window.title(self.window_title)
         self._view.fig = Figure()
