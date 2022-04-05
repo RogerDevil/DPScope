@@ -5,8 +5,7 @@ from portselect import get_port
 import high
 from model.controller.helper.trigger import TriggerSource
 from model.controller.helper.voltage_measure import VoltageResolution
-from view.director import Director
-from view.builder.standard import StandardViewBuilder
+from controller import DPScopeApp
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,31 +27,28 @@ class Datalogger(high.Task):
 
 stopfn = lambda: None
 
-def start():
-    global stopfn
-    if "Datalog mode" in view.signals['Horizontal.sample_mode']:
-        dl = Datalogger(view.window, 100)
-        stopfn = dl.stop
-        dl.start()
 
-def stop():
-    stopfn()
+with DPScopeApp() as app:
+    def start():
+        global stopfn
+        if "Datalog mode" in app._view.signals['Horizontal.sample_mode']:
+            dl = Datalogger(app._view.window, 100)
+            stopfn = dl.stop
+            dl.start()
 
+    def stop():
+        stopfn()
 
-view_builder = Director(StandardViewBuilder())
-view_builder.view_build()
-view = view_builder.view_get()
+    pltr = high.Plotter(app._view.fig)
+    pltr.scope = get_port(app._view.window)
 
-pltr = high.Plotter(view.fig)
-pltr.scope = get_port(view.window)
+    with pltr.scope as dpscope:
+        # defaults
+        dpscope.trigger.source = TriggerSource.auto
+        dpscope.voltages.resolution = VoltageResolution.low
+        dpscope.gain_set(0, 0)
+        dpscope.gain_set(1, 0)
+        dpscope.pregain_set(0, 0)
+        dpscope.pregain_set(1, 0)
 
-with pltr.scope as dpscope:
-    # defaults
-    dpscope.trigger.source = TriggerSource.auto
-    dpscope.voltages.resolution = VoltageResolution.low
-    dpscope.gain_set(0, 0)
-    dpscope.gain_set(1, 0)
-    dpscope.pregain_set(0, 0)
-    dpscope.pregain_set(1, 0)
-
-    view.show()
+        app.show()

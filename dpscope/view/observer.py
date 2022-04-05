@@ -35,7 +35,7 @@ class ViewObserverBase(ABC):
 
         Args:
             view (View): The app view.
-            controller: The app controller.
+            controller (DPScopeApp): The app controller.
         """
         self._view = view
         self._controller = controller
@@ -84,4 +84,4 @@ class ClearObserver(ViewObserverBase):
     channel = "Acquisition.Clear"
 
     def update(self):
-        _LOGGER.info("Clear bcsutton pressed")
+        _LOGGER.info("Clear button pressed")
