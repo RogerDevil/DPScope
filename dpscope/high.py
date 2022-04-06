@@ -1,28 +1,7 @@
 from model.controller import DPScopeController
 from multiprocessing.pool import ThreadPool
 from tkinter import BooleanVar
-from threading import Semaphore
 
-
-class Task(object):
-
-    def __init__(self, widget, interval):
-        self.widget = widget
-        self.interval = interval
-        self.timer = None
-        self.s = Semaphore()
-
-    def start(self):
-        self.s.acquire()
-        self.timer = self.widget.after(self.interval, self.start)
-        self.s.release()
-        self.task()
-
-    def stop(self):
-        if self.timer:
-            self.s.acquire()
-            self.widget.after_cancel(self.timer)
-            self.s.release()
 
 class Plotter(object):
 
