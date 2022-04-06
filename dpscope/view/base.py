@@ -4,7 +4,7 @@ Defines the basic View.
 import logging
 
 # Set up logging
-from view.observer import ObserverTypeException, ViewObserverBase
+from controller.observer import ObserverTypeException, ViewObserverBase
 
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
@@ -19,8 +19,16 @@ class View(object):
     ViewBuilderBase.
     """
     window = None  # Holds the Tkinter window Tk()
-    fig = None  # Holds the matplotlib figure Figure()
 
+    # Handles for matplotlib objects
+    fig = None  # Holds the matplotlib figure figure.Figure()
+    axes = None  # Holds the matplotlib axes.Axes() from within the Figure.
+    ch1 = None  # Holds the matplotlib lines.Line2D() for channel 1 plotted
+    # data
+    ch2 = None  # Holds the matplotlib lines.Line2D() for channel 2 plotted
+    # data
+
+    # Handles for tkinter objects holding different parts of the view window.
     plot_area = None
     acq_ctrl = None
     lvl_adj = None

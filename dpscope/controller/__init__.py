@@ -7,8 +7,8 @@ import logging
 
 from view.director import Director
 from view.builder.standard import StandardViewBuilder
-from view.observer import (PollObserver, StopObserver, ClearObserver,
-                           StartObserver)
+from controller.observer import (PollObserver, StopObserver, ClearObserver,
+                                 StartObserver)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -31,22 +31,30 @@ class DPScopeApp(object):
         view_builder = Director(StandardViewBuilder())
         view_builder.view_build()
         self._view = view_builder.view_get()
-        self._observers = [observer(self._view, self)
+
+    def model_set(self, model):
+        """
+        Set model into app.
+
+        Creates and attaches observers to View.
+
+        Args:
+            model (DPScopeController): The DPScope controller.
+        """
+        self._model = model
+        self._observers = [observer(self._view, self._model)
                            for observer in [PollObserver, StopObserver,
                                             ClearObserver, StartObserver]]
-
-    def __enter__(self):
-        """
-        Attaches observers to the View.
-
-        Returns:
-            DPScopeApp: This app instance.
-        """
         for observer in self._observers:
             self._view.attach(observer)
 
         _LOGGER.debug("Attached observers: '{}'".format(self._view.observers))
 
+    def __enter__(self):
+        """
+        Returns:
+            DPScopeApp: This app instance.
+        """
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

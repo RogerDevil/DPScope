@@ -10,7 +10,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from tkinter import (Tk, Frame, LabelFrame, BOTH, Button, Label, Spinbox, X,
                      LEFT, Scale, Checkbutton, BooleanVar, W, StringVar,
-                     OptionMenu, Radiobutton, HORIZONTAL, IntVar, E)
+                     OptionMenu, Radiobutton, HORIZONTAL, E)
 
 from view.base import View
 
@@ -228,6 +228,8 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.window = Tk()
         self._view.window.title(self.window_title)
         self._view.fig = Figure()
+        self._view.axes = self._view.fig.add_subplot(111)
+        self._view.ch1, self._view.ch2 = self._view.axes.plot([], [], [], [])
 
     def build_plot_area(self):
         """
