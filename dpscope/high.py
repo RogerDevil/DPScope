@@ -29,8 +29,6 @@ class Plotter(object):
     def __init__(self, fig):
         self._scope = None
         self.fig = fig
-        self.plt = fig.add_subplot(111)
-        self.ch1, self.ch2 = self.plt.plot([], [], [], [])
         self.pool = ThreadPool()
 
         self.ch1b = BooleanVar()
@@ -81,16 +79,3 @@ class Plotter(object):
         else:
             self.plot([], ch1, [], ch2)
 
-    def plot(self, x1=[], y1=[], x2=[], y2=[]):
-        if len(y1) and not len(x1):
-            x1 = range(len(y1))
-
-        if len(y2) and not len(x2):
-            x2 = range(len(y2))
-
-        self.ch1.set_data(x1, y1)
-        self.ch2.set_data(x2, y2)
-
-        self.plt.relim()
-        self.plt.autoscale_view()
-        self.fig.canvas.draw()
