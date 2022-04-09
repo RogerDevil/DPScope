@@ -200,7 +200,7 @@ class VoltageStreamer(object):
                 self._voltage_stream.put(voltages)
                 self._t_next += self.period_ms
 
-    def start(self):
+    def stream_start(self):
         """
         Start streaming voltage acquisition.
         """
@@ -208,7 +208,7 @@ class VoltageStreamer(object):
             self._thread = Thread(target=self._periodic_read_t)
             self._thread.start()
 
-    def stop(self):
+    def stream_stop(self):
         """
         Stop streaming voltage acquisition.
         """
@@ -216,3 +216,12 @@ class VoltageStreamer(object):
             self._cmd_queue.put(True)
             self._thread.join()
             self._thread = None
+
+    def stream_queue_get(self):
+        """
+        Returns:
+            queue.Queue: The Queue where voltages are streams to. Each
+            element is in the form of [V_ch1, V_ch2], a list of floats for
+            the 2 channels measured.
+        """
+        return self._voltage_stream
