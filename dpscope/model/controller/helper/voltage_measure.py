@@ -225,3 +225,13 @@ class VoltageStreamer(object):
             the 2 channels measured.
         """
         return self._voltage_stream
+
+    def voltage_reader_set(self, voltage_reader):
+        """
+        Refresh the voltage reader.
+
+        Args:
+            voltage_reader (VoltageSingleRead): The controller for acquiring a
+            single voltage data point.
+        """
+        self._voltage_reader = voltage_reader

@@ -1,7 +1,8 @@
 import logging
 
 from model.interface import DPScopeInterface
-from model.controller.helper.voltage_measure import VoltageSingleRead
+from model.controller.helper.voltage_measure import (VoltageSingleRead,
+                                                     VoltageStreamer)
 from model.controller.helper.gain import Gain, PreGain
 from model.controller.helper.poll import make_poll, PollType
 from model.controller.helper.trigger import TriggerSettings
@@ -22,9 +23,34 @@ class DPScopeController(object):
     """
     _interface = None  # Holds the interface to DPScope (sends serial
     # command to DPScope).
-    voltages = None  # Single voltage measurer.
+    _voltages = None  # Single voltage measurer.
     _poll_controller = None  # Holds the controller for implementing polling.
     trigger = None  # Trigger settings manager.
+    _voltage_streamer = None  # Controls continuous measurements.
+
+    @property
+    def voltages(self):
+        """
+        Returns:
+            VoltageSingleRead: Controller for acquiring single voltage
+            measurement.
+        """
+        return self._voltages_private
+
+    @voltages.setter
+    def voltages(self, voltage_measurer):
+        """
+        Sets the voltage measurer, and the associated results streamer.
+
+        Args:
+            voltage_measurer (VoltageSingleRead): The controller for
+            acquiring a single voltage data point.
+        """
+        self._voltages_private = voltage_measurer
+        if self._voltage_streamer is None:
+            self._voltage_streamer = VoltageStreamer(voltage_measurer)
+        else:
+            VoltageStreamer.voltage_reader_set(voltage_measurer)
 
     def __init__(self, port):
         """
@@ -166,3 +192,22 @@ class DPScopeController(object):
         except IndexError as ie:
             raise ie("Attempting to set gain on channel {}; Channel "
                      "specifier can only be (0, 1).".format(ch))
+
+    def stream_voltages_start(self):
+        """
+        Start streaming voltages to Queue from a thread.
+        """
+        self._voltage_streamer.stream_start()
+
+    def stream_voltages_stop(self):
+        """
+        Stop streaming voltages to Queue.
+        """
+        self._voltage_streamer.stream_stop()
+
+    def stream_queue_get(self):
+        """
+        Returns:
+            queue.Queue: The voltages results stream.
+        """
+        return self._voltage_streamer.stream_queue_get()
