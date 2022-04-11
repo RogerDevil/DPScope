@@ -1,10 +1,9 @@
 from enum import Enum
 from functools import total_ordering
 import logging
-from threading import Thread
-from time import time
 from queue import Queue
 
+from concurrent import ConcurrentBase
 from model.command import CommsException
 
 # Set up logging
@@ -134,33 +133,13 @@ class VoltageSingleRead(object):
         return voltages
 
 
-class VoltageStreamer(object):
+class VoltageStreamer(ConcurrentBase):
     """
     Streams voltage reading continuously into a thread queue.
     """
-    _period_ms = None  # Measurement periodicity in msec.
-
     _voltage_reader = None  # The object for performing single voltage read
     # measurement.
-    _t_next = None  # Target time of next results measurement.
     _voltage_stream = Queue()  # Where the voltage results are placed.
-    _thread = None  # Thread in which continuous measurement is made.
-    _cmd_queue = Queue()  # Submits commands to the measurement thread.
-
-    @property
-    def period_ms(self):
-        """
-        Returns:
-            float: Measurement periodicity in msec.
-        """
-        return self._period_ms
-
-    @period_ms.setter
-    def period_ms(self, period_ms):
-        """
-        Sets measurement periodicity as float.
-        """
-        self._period_ms = float(period_ms)
 
     @property
     def voltage_stream(self):
@@ -179,43 +158,18 @@ class VoltageStreamer(object):
             measuring voltage.
             period_ms (int, flaot): Measurement period in msec.
         """
-        self.period_ms = float(period_ms)
+        super().__init__(period_ms)
         self._voltage_reader = voltage_reader
-        self._t_next = time()
 
-    def _periodic_read_t(self):
+    def _looped_function_c(self):
         """
         Periodically acquire voltages from scope.
 
-        This method should be run from within a thread. Measurements are put
+        This method is run from within a thread. Measurements are put
         into the _voltage_stream Queue.
         """
-        while True:
-            if self._cmd_queue.get_nowait():
-                _LOGGER.info("Suspending measurement thread.")
-                break
-            t_now = time()
-            if t_now >= self._t_next:
-                voltages = self._voltage_reader.read()
-                self._voltage_stream.put(voltages)
-                self._t_next += self.period_ms
-
-    def stream_start(self):
-        """
-        Start streaming voltage acquisition.
-        """
-        if self._thread is None:
-            self._thread = Thread(target=self._periodic_read_t)
-            self._thread.start()
-
-    def stream_stop(self):
-        """
-        Stop streaming voltage acquisition.
-        """
-        if self._thread is not None:
-            self._cmd_queue.put(True)
-            self._thread.join()
-            self._thread = None
+        voltages = self._voltage_reader.read()
+        self._voltage_stream.put(voltages)
 
     def stream_queue_get(self):
         """

@@ -197,13 +197,13 @@ class DPScopeController(object):
         """
         Start streaming voltages to Queue from a thread.
         """
-        self._voltage_streamer.stream_start()
+        self._voltage_streamer.start()
 
     def stream_voltages_stop(self):
         """
         Stop streaming voltages to Queue.
         """
-        self._voltage_streamer.stream_stop()
+        self._voltage_streamer.stop()
 
     def stream_queue_get(self):
         """

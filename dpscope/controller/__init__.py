@@ -5,7 +5,7 @@ This is the controller from the MVC design pattern.
 """
 import logging
 
-from view.director import Director
+from view.builder.director import Director
 from view.builder.standard import StandardViewBuilder
 from controller.observer import (PollObserver, StopObserver, ClearObserver,
                                  StartObserver)
@@ -47,8 +47,11 @@ class DPScopeApp(object):
                                             ClearObserver, StartObserver]]
         for observer in self._observers:
             self._view.attach(observer)
-
         _LOGGER.debug("Attached observers: '{}'".format(self._view.observers))
+
+        # To be converted to a observer.
+        self._view.active_plot_mode.results_stream = \
+            self._model.stream_queue_get()
 
     def __enter__(self):
         """

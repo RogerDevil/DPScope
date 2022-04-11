@@ -3,9 +3,9 @@ Defines the basic View.
 """
 import logging
 
-# Set up logging
 from controller.observer import ObserverTypeException, ViewObserverBase
 
+# Set up logging
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
@@ -42,6 +42,8 @@ class View(object):
 
     # Holds user signals
     signals = {}
+
+    active_plot_mode = None  # Holds the active plotting mode.
 
     def show(self):
         """
