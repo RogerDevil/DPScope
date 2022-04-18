@@ -150,6 +150,7 @@ class TkQueueGetter(object):
         if self._after:
             self.window.after_cancel(self._after)
             self._after = None
+            _LOGGER.debug("Stopped monitoring for data from queue.")
 
     def queue_set(self, queue):
         """
