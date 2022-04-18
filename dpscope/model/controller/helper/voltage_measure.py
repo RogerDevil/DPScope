@@ -1,7 +1,7 @@
 from enum import Enum
 from functools import total_ordering
 import logging
-from multiprocessing import Queue
+from queue import Queue
 
 from concurrent import ThreadLoop
 from model.command import CommsException
@@ -173,17 +173,17 @@ class VoltageStreamer(object):
         voltages = self._voltage_reader.read()
         self.voltage_stream.put(voltages)
 
-    # def _thread_process_clear_c(self):
-    #     """
-    #     Removes any final data in the results stream.
-    #     """
-    #     from_buffer = []
-    #     while not self._voltage_stream.empty():
-    #         from_buffer.append(self._voltage_stream.get())
-    #         self._voltage_stream.task_done()
-    #     if len(from_buffer) > 0:
-    #         _LOGGER.debug("Emptying results stream during clean up: '{}'"
-    #                       "".format(from_buffer))
+    def _stream_queue_clear(self):
+        """
+        Removes any final data in the results stream.
+        """
+        from_buffer = []
+        while not self._voltage_stream.empty():
+            from_buffer.append(self._voltage_stream.get())
+            self._voltage_stream.task_done()
+        if len(from_buffer) > 0:
+            _LOGGER.debug("Emptying results stream during clean up: '{}'"
+                          "".format(from_buffer))
 
     def stream_queue_get(self):
         """
@@ -222,3 +222,4 @@ class VoltageStreamer(object):
         Stop the voltage measuring thread.
         """
         self._thread_runner.stop()
+        self._stream_queue_clear()
