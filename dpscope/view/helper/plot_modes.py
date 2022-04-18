@@ -52,13 +52,9 @@ class PlotModeBase(QueueObserverBase, ABC):
 
         This is called from behind a thread.
         """
-        print("=====1")
         self._axes.relim()
-        print("=====2")
         self._axes.autoscale_view()
-        print("=====3")
         self._fig.canvas.draw()
-        print("=====4")
 
     def window_get(self):
         """
@@ -79,7 +75,6 @@ class DataLogger(PlotModeBase):
         Args:
             results (float, float): Tuple of ch1, ch2 results.
         """
-        print("*****1")
         v_ch1, v_ch2 = results
         print(v_ch1)
         print(v_ch2)
