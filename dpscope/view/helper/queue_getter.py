@@ -128,8 +128,6 @@ class TkQueueGetter(object):
         Start periodically get objects from queue, and call on the attached
         observers to react to each obtained object.
         """
-        if self._after:
-            raise QueueStartError("Queue getter has already started.")
         if self._queue.empty():
             self._after = self.window.after(int(self.period_ms/10),
                                             self.start)
