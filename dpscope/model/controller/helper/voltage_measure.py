@@ -163,21 +163,15 @@ class VoltageStreamer(object):
         self._thread_runner = ThreadLoop(period_ms)
         self._voltage_reader = voltage_reader
 
-    @classmethod
-    def _voltage_acquire_c(cls, reader, results_stream):
+    def _voltage_acquire_c(self):
         """
         Periodically acquire voltages from scope.
 
         This method is run from within a thread. Measurements are put
         into the _voltage_stream Queue.
-
-        Args:
-            reader (VoltageSingleRead): Single data point reader for
-            measuring voltage.
-            results_stream (queue.Queue): Where the voltage results are placed.
         """
-        voltages = reader.read()
-        results_stream.put(voltages)
+        voltages = self._voltage_reader.read()
+        self.voltage_stream.put(voltages)
 
     # def _thread_process_clear_c(self):
     #     """
@@ -221,8 +215,7 @@ class VoltageStreamer(object):
         """
         Start the voltage measuring function in a loop in a thread.
         """
-        self._thread_runner.start(self._voltage_acquire_c,
-                                  (self._voltage_reader, self._voltage_stream))
+        self._thread_runner.start(self._voltage_acquire_c)
 
     def stop(self):
         """

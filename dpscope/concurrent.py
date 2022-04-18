@@ -97,7 +97,7 @@ class ConcurrentBase(ABC):
                 looped_func(*args)
                 self._t_next += self.period_ms/1000
 
-    def start(self, looped_func, args):
+    def start(self, looped_func, args=()):
         """
         Starts the concurrent process.
 
