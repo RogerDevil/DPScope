@@ -76,8 +76,6 @@ class DataLogger(PlotModeBase):
             results (float, float): Tuple of ch1, ch2 results.
         """
         v_ch1, v_ch2 = results
-        print(v_ch1)
-        print(v_ch2)
         self.buffer.ch1.append(v_ch1)
         self.buffer.ch2.append(v_ch2)
         self.plot_data.ch1.set_data(self.buffer.x1, self.buffer.ch1)
