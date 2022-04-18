@@ -14,6 +14,7 @@ from tkinter import (Tk, Frame, LabelFrame, BOTH, Button, Label, Spinbox, X,
 
 from view.base import View
 from view.helper.plot_modes import DataLogger
+from view.helper.queue_getter import TkQueueGetter
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -375,6 +376,8 @@ class StandardViewBuilder(ViewBuilderBase):
 
     def view_initialise(self):
         """
-        Sets active plot mode.
+        Sets active plot mode and results queue monitor.
         """
-        self._view.active_plot_mode = DataLogger(self._view)
+        self._view.voltage_getter = TkQueueGetter()
+        # To be replaced by the observer setting mechanism.
+        self._view.plot_mode = DataLogger(self._view)

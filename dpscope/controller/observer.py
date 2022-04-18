@@ -55,8 +55,10 @@ class StartObserver(ViewObserverBase):
 
     def update(self):
         _LOGGER.info("Start button pressed")
+        stream_period_ms = self._model.stream_period_get()
+        self._view.voltage_getter.period_ms = stream_period_ms
         self._model.stream_voltages_start()
-        self._view.active_plot_mode.start()
+        self._view.voltage_getter.start()
 
 
 class StopObserver(ViewObserverBase):
@@ -68,7 +70,7 @@ class StopObserver(ViewObserverBase):
     def update(self):
         _LOGGER.info("Stop button pressed")
         self._model.stream_voltages_stop()
-        self._view.active_plot_mode.stop()
+        self._view.voltage_getter.stop()
 
 
 class PollObserver(ViewObserverBase):

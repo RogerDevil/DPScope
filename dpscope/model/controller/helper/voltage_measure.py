@@ -1,9 +1,9 @@
 from enum import Enum
 from functools import total_ordering
 import logging
-from queue import Queue
+from multiprocessing import Queue
 
-from concurrent import ConcurrentBase
+from concurrent import ThreadLoop
 from model.command import CommsException
 
 # Set up logging
@@ -133,13 +133,15 @@ class VoltageSingleRead(object):
         return voltages
 
 
-class VoltageStreamer(ConcurrentBase):
+class VoltageStreamer(object):
     """
     Streams voltage reading continuously into a thread queue.
     """
     _voltage_reader = None  # The object for performing single voltage read
     # measurement.
     _voltage_stream = Queue()  # Where the voltage results are placed.
+    _thread_runner = None  # The controller for running function in
+    # continuous loop.
 
     @property
     def voltage_stream(self):
@@ -158,18 +160,36 @@ class VoltageStreamer(ConcurrentBase):
             measuring voltage.
             period_ms (int, flaot): Measurement period in msec.
         """
-        super().__init__(period_ms)
+        self._thread_runner = ThreadLoop(period_ms)
         self._voltage_reader = voltage_reader
 
-    def _looped_function_c(self):
+    @classmethod
+    def _voltage_acquire_c(cls, reader, results_stream):
         """
         Periodically acquire voltages from scope.
 
         This method is run from within a thread. Measurements are put
         into the _voltage_stream Queue.
+
+        Args:
+            reader (VoltageSingleRead): Single data point reader for
+            measuring voltage.
+            results_stream (queue.Queue): Where the voltage results are placed.
         """
-        voltages = self._voltage_reader.read()
-        self._voltage_stream.put(voltages)
+        voltages = reader.read()
+        results_stream.put(voltages)
+
+    # def _thread_process_clear_c(self):
+    #     """
+    #     Removes any final data in the results stream.
+    #     """
+    #     from_buffer = []
+    #     while not self._voltage_stream.empty():
+    #         from_buffer.append(self._voltage_stream.get())
+    #         self._voltage_stream.task_done()
+    #     if len(from_buffer) > 0:
+    #         _LOGGER.debug("Emptying results stream during clean up: '{}'"
+    #                       "".format(from_buffer))
 
     def stream_queue_get(self):
         """
@@ -180,6 +200,13 @@ class VoltageStreamer(ConcurrentBase):
         """
         return self._voltage_stream
 
+    def stream_period_get(self):
+        """
+        Returns:
+            float: Streaming period.
+        """
+        return self._thread_runner.period_ms
+
     def voltage_reader_set(self, voltage_reader):
         """
         Refresh the voltage reader.
@@ -189,3 +216,16 @@ class VoltageStreamer(ConcurrentBase):
             single voltage data point.
         """
         self._voltage_reader = voltage_reader
+
+    def start(self):
+        """
+        Start the voltage measuring function in a loop in a thread.
+        """
+        self._thread_runner.start(self._voltage_acquire_c,
+                                  (self._voltage_reader, self._voltage_stream))
+
+    def stop(self):
+        """
+        Stop the voltage measuring thread.
+        """
+        self._thread_runner.stop()

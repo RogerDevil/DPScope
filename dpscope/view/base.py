@@ -43,7 +43,30 @@ class View(object):
     # Holds user signals
     signals = {}
 
-    active_plot_mode = None  # Holds the active plotting mode.
+    _plot_mode = None  # Holds the active plotting mode.
+    voltage_getter = None  # Gets voltages from Queue.
+
+    @property
+    def plot_mode(self):
+        """
+        Returns:
+            PlotModeBase: The active plot mode.
+        """
+        return self._plot_mode
+
+    @plot_mode.setter
+    def plot_mode(self, plot_mode):
+        """
+        Sets the plot mode, amend the results_observers set and
+        attach/detach to any existing voltage_getter accordingly.
+
+        Args:
+            plot_mode (PlotModeBase): Can be a valid plot mode, or None.
+        """
+        if self._plot_mode is not None:
+            self.voltage_getter.detach(plot_mode)
+        self.voltage_getter.attach(plot_mode)
+        self._plot_mode = plot_mode
 
     def show(self):
         """
@@ -107,3 +130,13 @@ class View(object):
         """
         self._verify_observer(observer)
         self.observers[observer.channel].remove(observer)
+
+    def results_stream_set(self, results_stream):
+        """
+        Registers the results stream with the view.
+
+        Args:
+            results_stream (Queue): The Queue where the results from the model
+            is piped over.
+        """
+        self.voltage_getter.queue_set(results_stream)

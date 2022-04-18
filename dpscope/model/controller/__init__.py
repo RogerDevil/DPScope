@@ -211,3 +211,10 @@ class DPScopeController(object):
             queue.Queue: The voltages results stream.
         """
         return self._voltage_streamer.stream_queue_get()
+
+    def stream_period_get(self):
+        """
+        Returns:
+            float: Results measuring periodicity.
+        """
+        return self._voltage_streamer.stream_period_get()
