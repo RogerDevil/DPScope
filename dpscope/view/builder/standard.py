@@ -13,6 +13,8 @@ from tkinter import (Tk, Frame, LabelFrame, BOTH, Button, Label, Spinbox, X,
                      OptionMenu, Radiobutton, HORIZONTAL, E)
 
 from view.base import View
+from view.helper.plot_modes import DataLogger
+from view.helper.queue_getter import TkQueueGetter
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -80,6 +82,12 @@ class ViewBuilderBase(ABC):
     def build_trigger_controls(self):
         """
         Build trigger controls.
+        """
+
+    @abstractmethod
+    def view_initialise(self):
+        """
+        Set default values for the view.
         """
 
     def view_make(self):
@@ -365,3 +373,11 @@ class StandardViewBuilder(ViewBuilderBase):
                                trig_pol_options)
 
         self._add_checkbox(self._view.trig_ctrl, "Noise reject", 1, 3)
+
+    def view_initialise(self):
+        """
+        Sets active plot mode and results queue monitor.
+        """
+        self._view.voltage_getter = TkQueueGetter()
+        # To be replaced by the observer setting mechanism.
+        self._view.plot_mode = DataLogger(self._view)

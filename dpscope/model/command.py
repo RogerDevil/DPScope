@@ -4,6 +4,7 @@ Sends and receives command to DPScope.
 from abc import ABC, abstractmethod
 import logging
 import struct
+from threading import Lock
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -56,6 +57,8 @@ class Command(CommandBase):
     _ret = None  # Format specifier for the data response.
     _args = None  # Format specifier for the parameters associated with the
     # sent command.
+
+    _conn_lock = Lock()  # Threading lock to protect the serial connection.
 
     @property
     def cmd(self):
@@ -125,22 +128,25 @@ class Command(CommandBase):
                                    "requires {} arguments. {} provided."
                                    "".format(self._cmd, arglen, len(args)))
 
-        # Send command and parameters
-        self._conn.write(self.cmd)
-        self._conn.write(struct.pack(self._endian+self._args, *args))
+        with self._conn_lock:
+            # Send command and parameters
+            self._conn.write(self.cmd)
+            self._conn.write(struct.pack(self._endian+self._args, *args))
 
-        # Check DPScope's acknowledgement
-        if self._ackb:
-            self._ack()
+            # Check DPScope's acknowledgement
+            if self._ackb:
+                self._ack()
 
-        # receives data
-        retlen = struct.calcsize(self._endian + self._ret)
-        res = struct.unpack(self._endian + self._ret, self._conn.read(retlen))
-        if self._postack:
-            self._ack()
-        if self._conn.inWaiting() != 0:
-            raise CommsException("{} unexpected unread bytes after DPScope "
-                                 "response.".format(self._conn.inWaiting()))
+            # receives data
+            retlen = struct.calcsize(self._endian + self._ret)
+            res = struct.unpack(self._endian + self._ret,
+                                self._conn.read(retlen))
+            if self._postack:
+                self._ack()
+            if self._conn.inWaiting() != 0:
+                raise CommsException("{} unexpected unread bytes after "
+                                     "DPScope response."
+                                     "".format(self._conn.inWaiting()))
 
         return res
 
@@ -151,6 +157,8 @@ class CommandReadback(CommandBase):
     """
     _conn = None  # Holds the serial connection
     _cmd = None  # Holds the command num for initiating readback operation.
+
+    _conn_lock = Lock()  # Threading lock to protect the serial connection.
 
     def __init__(self, conn, cmd):
         """
@@ -173,15 +181,16 @@ class CommandReadback(CommandBase):
         Return:
             Results.
         """
-        self._conn.write(bytes(chr(self._cmd) + chr(nob), "utf-8"))
-        status = self._conn.read()
-        res = None
-        if status:
-            read_buffer = self._conn.read(1 + (2 * nob))
-            res = [ord(char) for char in read_buffer.decode("utf-8")]
-        if self._conn.inWaiting() != 0:
-            raise CommsException("{} unexpected unread bytes."
-                                 "".format(self._conn.inWaiting()))
+        with self._conn_lock:
+            self._conn.write(bytes(chr(self._cmd) + chr(nob), "utf-8"))
+            status = self._conn.read()
+            res = None
+            if status:
+                read_buffer = self._conn.read(1 + (2 * nob))
+                res = [ord(char) for char in read_buffer.decode("utf-8")]
+            if self._conn.inWaiting() != 0:
+                raise CommsException("{} unexpected unread bytes."
+                                     "".format(self._conn.inWaiting()))
 
         return res
 

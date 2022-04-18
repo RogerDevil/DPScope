@@ -5,7 +5,7 @@ This is the controller from the MVC design pattern.
 """
 import logging
 
-from view.director import Director
+from view.builder.director import Director
 from view.builder.standard import StandardViewBuilder
 from controller.observer import (PollObserver, StopObserver, ClearObserver,
                                  StartObserver)
@@ -36,7 +36,8 @@ class DPScopeApp(object):
         """
         Set model into app.
 
-        Creates and attaches observers to View.
+        Creates and attaches observers to View. Register results stream with
+        the View.
 
         Args:
             model (DPScopeController): The DPScope controller.
@@ -47,8 +48,9 @@ class DPScopeApp(object):
                                             ClearObserver, StartObserver]]
         for observer in self._observers:
             self._view.attach(observer)
-
         _LOGGER.debug("Attached observers: '{}'".format(self._view.observers))
+
+        self._view.results_stream_set(self._model.stream_queue_get())
 
     def __enter__(self):
         """

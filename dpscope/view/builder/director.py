@@ -38,6 +38,7 @@ class Director(object):
         self._builder.build_vertical_controls()
         self._builder.build_horizontal_controls()
         self._builder.build_trigger_controls()
+        self._builder.view_initialise()
 
     def view_get(self):
         """
