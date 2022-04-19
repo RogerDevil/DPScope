@@ -5,9 +5,11 @@ This is the controller from the MVC design pattern.
 """
 import logging
 
+from controller.observer import observers_get_all
+from model.controller import DPScopeController
+from portselect import get_port
 from view.builder.director import Director
 from view.builder.standard import StandardViewBuilder
-from controller.observer import observers_get_all
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -50,11 +52,22 @@ class DPScopeApp(object):
 
         self._view.results_stream_set(self._model.stream_queue_get())
 
+    def model_get(self):
+        """
+        Returns:
+            DPScopeController: The DPScope controller.
+        """
+        return self._model
+
     def __enter__(self):
         """
+        Creates port selection window and initialise DPScope model.
+
         Returns:
             DPScopeApp: This app instance.
         """
+        port_num = get_port(self._view.window)
+        self.model_set(DPScopeController(port_num))
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

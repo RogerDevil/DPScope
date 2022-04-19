@@ -1,8 +1,5 @@
 import logging
 
-from portselect import get_port
-
-import high
 from model.controller.helper.trigger import TriggerSource
 from model.controller.helper.voltage_measure import VoltageResolution
 from controller import DPScopeApp
@@ -14,11 +11,7 @@ _LOGGER.setLevel(logging.DEBUG)
 
 if __name__ == "__main__":
     with DPScopeApp() as app:
-        pltr = high.Plotter(app._view.fig)
-        pltr.scope = get_port(app._view.window)
-        app.model_set(pltr.scope)
-
-        with pltr.scope as dpscope:
+        with app.model_get() as dpscope:
             # defaults
             dpscope.trigger.source = TriggerSource.auto
             dpscope.voltages.resolution = VoltageResolution.low
