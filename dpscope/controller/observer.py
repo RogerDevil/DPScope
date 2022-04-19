@@ -1,10 +1,28 @@
 from abc import ABC, abstractmethod
+from inspect import getmembers, isclass, isabstract
 import logging
+import sys
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
+
+
+def observers_get_all():
+    """
+    Returns:
+        list(ViewObserverBase): List of all view observer classes.
+    """
+    current_module = sys.modules[__name__]
+    name_and_class = getmembers(current_module,
+                                lambda m: isclass(m) and not isabstract(m))
+    names = [name for name, cls in name_and_class
+             if issubclass(cls, ViewObserverBase)]
+    classes = [cls for _, cls in name_and_class
+               if issubclass(cls, ViewObserverBase)]
+    _LOGGER.info("Retrieved observers: {}".format(names))
+    return classes
 
 
 class ObserverTypeException(Exception):

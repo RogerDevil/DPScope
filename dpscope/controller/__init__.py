@@ -7,8 +7,7 @@ import logging
 
 from view.builder.director import Director
 from view.builder.standard import StandardViewBuilder
-from controller.observer import (PollObserver, StopObserver, ClearObserver,
-                                 StartObserver)
+from controller.observer import observers_get_all
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -44,8 +43,7 @@ class DPScopeApp(object):
         """
         self._model = model
         self._observers = [observer(self._view, self._model)
-                           for observer in [PollObserver, StopObserver,
-                                            ClearObserver, StartObserver]]
+                           for observer in observers_get_all()]
         for observer in self._observers:
             self._view.attach(observer)
         _LOGGER.debug("Attached observers: '{}'".format(self._view.observers))
