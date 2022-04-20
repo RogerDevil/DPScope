@@ -64,7 +64,7 @@ class View(object):
             plot_mode (PlotModeBase): Can be a valid plot mode, or None.
         """
         if self._plot_mode is not None:
-            self.voltage_getter.detach(plot_mode)
+            self.voltage_getter.detach(self._plot_mode)
         self.voltage_getter.attach(plot_mode)
         self._plot_mode = plot_mode
 

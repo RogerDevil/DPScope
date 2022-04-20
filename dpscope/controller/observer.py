@@ -3,6 +3,8 @@ from inspect import getmembers, isclass, isabstract
 import logging
 import sys
 
+from view.helper.plot_modes import DataLogger
+
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
@@ -109,3 +111,16 @@ class ClearObserver(ViewObserverBase):
 
     def update(self):
         _LOGGER.info("Clear button pressed")
+
+
+class SampleModeObserver(ViewObserverBase):
+    """
+    Reacting to Scope/Datalog radio button activation.
+    """
+    channel = "Horizontal.sample_mode"
+
+    def update(self):
+        sample_mode = self._view.signals[self.channel].get()
+        _LOGGER.info("'{}' selected.".format(sample_mode))
+        if sample_mode == "Datalog mode":
+            self._view.plot_mode = DataLogger(self._view)

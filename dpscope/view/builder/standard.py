@@ -219,7 +219,8 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.signals.update({signal_name: StringVar()})
         self._view.observers.update({signal_name: set()})
         for button in options:
-            Radiobutton(container, text=button.text, variable=signal_name,
+            Radiobutton(container, text=button.text,
+                        variable=self._view.signals[signal_name],
                         value=button.text,
                         command=
                         lambda: self._view.observers_notify(signal_name)
@@ -379,9 +380,9 @@ class StandardViewBuilder(ViewBuilderBase):
         Sets active plot mode and results queue monitor.
         """
         self._view.voltage_getter = TkQueueGetter()
-        # To be replaced by the observer setting mechanism.
-        self._view.plot_mode = DataLogger(self._view)
 
         # Set channel selection
         self._view.signals["Display.Ch1"].set(True)
         self._view.signals["Display.Ch2"].set(True)
+
+        self._view.signals["Horizontal.sample_mode"].set("Datalog mode")
