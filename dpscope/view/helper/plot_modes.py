@@ -78,6 +78,12 @@ class DataLogger(PlotModeBase):
         v_ch1, v_ch2 = results
         self.buffer.ch1.append(v_ch1)
         self.buffer.ch2.append(v_ch2)
-        self.plot_data.ch1.set_data(self.buffer.x1, self.buffer.ch1)
-        self.plot_data.ch2.set_data(self.buffer.x2, self.buffer.ch2)
+        if self.show_ch1.get():
+            self.plot_data.ch1.set_data(self.buffer.x1, self.buffer.ch1)
+        else:
+            self.plot_data.ch1.set_data([], [])
+        if self.show_ch2.get():
+            self.plot_data.ch2.set_data(self.buffer.x2, self.buffer.ch2)
+        else:
+            self.plot_data.ch2.set_data([], [])
         self._refresh_graphics_c()

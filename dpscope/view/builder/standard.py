@@ -381,3 +381,7 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.voltage_getter = TkQueueGetter()
         # To be replaced by the observer setting mechanism.
         self._view.plot_mode = DataLogger(self._view)
+
+        # Set channel selection
+        self._view.signals["Display.Ch1"].set(True)
+        self._view.signals["Display.Ch2"].set(True)
