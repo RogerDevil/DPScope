@@ -13,7 +13,7 @@ from tkinter import (Tk, Frame, LabelFrame, BOTH, Button, Label, Spinbox, X,
                      OptionMenu, Radiobutton, HORIZONTAL, E)
 
 from view.base import View
-from view.helper.plot_modes import DataLogger
+from view.helper.initialise import initialiser_get
 from view.helper.queue_getter import TkQueueGetter
 
 # Set up logging
@@ -28,6 +28,12 @@ matplotlib.use('TkAgg')
 # Captures the variable attributes of RadioButtonOptions
 RadioBtnSubOptions = namedtuple("RadioBtnSubOptions",
                                 ["text", "row", "column"])
+
+
+class ViewBuildIncomplete(Exception):
+    """
+    View build has not been completed.
+    """
 
 
 class ViewBuilderBase(ABC):
@@ -84,11 +90,24 @@ class ViewBuilderBase(ABC):
         Build trigger controls.
         """
 
-    @abstractmethod
-    def view_initialise(self):
+    def view_non_gui_set(self):
         """
-        Set default values for the view.
+        Sets non GUI attributes.
         """
+        self._view.voltage_getter = TkQueueGetter()
+        self._view.initialiser = initialiser_get(self._view)
+
+    def view_verify(self):
+        """
+        Final checks before accepting the view completion is complete.
+
+        Checks that the view has a valid type name.
+        """
+        if (self._view.view_name is None
+                or not isinstance(self._view.view_name, str)):
+            raise ViewBuildIncomplete("View must have a valid string string. "
+                                      "It is currently '{}'"
+                                      "".format(self._view.view_name))
 
     def view_make(self):
         """
@@ -219,7 +238,8 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.signals.update({signal_name: StringVar()})
         self._view.observers.update({signal_name: set()})
         for button in options:
-            Radiobutton(container, text=button.text, variable=signal_name,
+            Radiobutton(container, text=button.text,
+                        variable=self._view.signals[signal_name],
                         value=button.text,
                         command=
                         lambda: self._view.observers_notify(signal_name)
@@ -231,8 +251,9 @@ class StandardViewBuilder(ViewBuilderBase):
         """
         Creates Tkinter window and embed a matplotlib Figure().
         """
-        _LOGGER.info("Creating '{}' app window - standard view."
-                     "".format(self.window_title))
+        self._view.view_name = "Standard"
+        _LOGGER.info("Creating '{}' app window - '{}' view."
+                     "".format(self.window_title, self._view.view_name))
         self._view.window = Tk()
         self._view.window.title(self.window_title)
         self._view.fig = Figure()
@@ -373,15 +394,3 @@ class StandardViewBuilder(ViewBuilderBase):
                                trig_pol_options)
 
         self._add_checkbox(self._view.trig_ctrl, "Noise reject", 1, 3)
-
-    def view_initialise(self):
-        """
-        Sets active plot mode and results queue monitor.
-        """
-        self._view.voltage_getter = TkQueueGetter()
-        # To be replaced by the observer setting mechanism.
-        self._view.plot_mode = DataLogger(self._view)
-
-        # Set channel selection
-        self._view.signals["Display.Ch1"].set(True)
-        self._view.signals["Display.Ch2"].set(True)

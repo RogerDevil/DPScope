@@ -68,6 +68,7 @@ class DPScopeApp(object):
         """
         port_num = get_port(self._view.window)
         self.model_set(DPScopeController(port_num))
+        self._view.initialiser.set()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
