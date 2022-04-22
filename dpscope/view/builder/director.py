@@ -38,7 +38,7 @@ class Director(object):
         self._builder.build_vertical_controls()
         self._builder.build_horizontal_controls()
         self._builder.build_trigger_controls()
-        self._builder.view_initialise()
+        self._builder.view_non_gui_set()
 
     def view_get(self):
         """
@@ -46,4 +46,5 @@ class Director(object):
             view.base.View: The specific app View, as defined by the View
             builder.
         """
+        self._builder.view_verify()
         return self._builder.view_get()

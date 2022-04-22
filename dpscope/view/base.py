@@ -18,6 +18,7 @@ class View(object):
     This view should always be constructed using a Director and
     ViewBuilderBase.
     """
+    view_name = None  # Name of the view.
     window = None  # Holds the Tkinter window Tk()
 
     # Handles for matplotlib objects
@@ -45,6 +46,8 @@ class View(object):
 
     _plot_mode = None  # Holds the active plotting mode.
     voltage_getter = None  # Gets voltages from Queue.
+
+    initialiser = None  # Manager for intialising this view.
 
     @property
     def plot_mode(self):
