@@ -16,30 +16,18 @@ class DataInputException(Exception):
     """
 
 
-class DataArrayBase(ABC):
+class DataArrayBase(list, ABC):
     """
     Holds list data and allows for in place edits.
     """
-    _data = None  # Holds the underlying list.
+    _max_len = None  # Cache for max data length
 
-    @property
-    def data(self):
+    def __init__(self, in_data, *args, **kwargs):
         """
-        Returns:
-            list: The stored data.
+        Calls parents' instantiation, transfers the max length cache.
         """
-        return self._data
-
-    @data.setter
-    def data(self, data):
-        """
-        Store data in internal buffer.
-
-        Args:
-            data (list): Data to be stored.
-        """
-        self._input_data_verify(data)
-        self._data = data
+        super().__init__(in_data, *args, **kwargs)
+        self._max_len = getattr(in_data, '_max_len', 512)
 
     @property
     def data_len(self):
@@ -47,7 +35,7 @@ class DataArrayBase(ABC):
         Returns:
             int: Length of stored data.
         """
-        return len(self._data)
+        return len(self)
 
     @property
     def x(self):
@@ -55,9 +43,23 @@ class DataArrayBase(ABC):
         Returns:
             range: Array range with same length as underlying data.
         """
-        return range(len(self._data))
+        return range(len(self))
+
+    @property
+    @abstractmethod
+    def max_len(self):
+        """
+        Returns:
+            int: Max length or data.
+        """
 
     @abstractmethod
+    def _trim_data(self):
+        """
+        Trims the start of internal data till its length is smaller than the
+        max length limit.
+        """
+
     def append(self, new_data):
         """
         Append new data elements.
@@ -65,56 +67,51 @@ class DataArrayBase(ABC):
         Args:
             new_data: New data to be appended.
         """
-
-    def clear(self):
-        """
-        Clears the underlying data.
-        """
-        self._data.clear()
-
-    def _input_data_verify(self, input):
-        """
-        Ensures input is a list and does not overwrite pre-existing data.
-
-        Args:
-            input (list): The input to be checked.
-        """
-        if not isinstance(input, list):
-            raise TypeError("Input data must be list type: '{}' detected."
-                            "".format(type(input)))
-        if self._data is not None:
-            raise DataInputException("Cannot overwrite existing data: '{}'."
-                                     "".format(self._data))
+        super().append(new_data)
+        self._trim_data()
 
 
 class InfiniteDataArray(DataArrayBase):
     """
     Data array of unrestricted length.
     """
-    def append(self, new_data):
+    @property
+    def max_len(self):
         """
-        Append new data elements.
+        Returns:
+            None: No max length
+        """
+        return None
 
-        Args:
-            new_data: New data to be appended.
+    def _trim_data(self):
         """
-        self._data.append(new_data)
+        Null op for an infinite data length.
+        """
+        pass
 
 
 class FiniteDataArray(DataArrayBase):
     """
     Data array of finite length.
     """
-    max_len = None  # Max length of data
-
-    def __init__(self, max_len=512):
+    @property
+    def max_len(self):
         """
-        Instantiate data buffer.
+        Returns:
+            int: Max length of data.
+        """
+        return self._max_len
+
+    @max_len.setter
+    def max_len(self, max_len):
+        """
+        Sets the max length of data, and trim if necessary.
 
         Args:
-            max_len (int): Maximum length of underlying data.
+            max_len (int): max length of data.
         """
-        self.max_len = max_len
+        self._max_len = max_len
+        self._trim_data()
 
     def _trim_data(self):
         """
@@ -122,41 +119,79 @@ class FiniteDataArray(DataArrayBase):
         max length limit.
         """
         while self.data_len > self.max_len:
-            self._data.pop(0)
-
-    @data.setter
-    def data(self, data):
-        """
-        Store data in internal buffer.
-
-        If the length of data to be set exceeds the maximum allowed length,
-        trim from the start till length is within limit. This is done as an
-        in-place modification.
-
-        Args:
-            data (list): Data to be stored.
-        """
-        self._input_data_verify(data)
-        self._data = data
-        self._trim_data()
-
-    def append(self, new_data):
-        """
-        Append new data elements.
-
-        Args:
-            new_data: New data to be appended.
-        """
-        self._data.append(new_data)
-        self._trim_data()
+            self.pop(0)
 
 
 class ChannelData(object):
     """
     Holder for data from dual channel device such as the DPScope.
     """
-    ch1 = None
-    ch2 = None
+    _ch1 = None
+    _ch2 = None
+
+    _trim_mode = InfiniteDataArray
+
+    @property
+    def ch1(self):
+        """
+        Returns:
+            Channel 1 data.
+        """
+        return self._ch1
+
+    @ch1.setter
+    def ch1(self, ch1):
+        """
+        Sets channel 1 data.
+
+        This attrib can only be set once. If it's a subtype of list,
+        apply the data trimming, otherwise, set attrib as is.
+
+        Args:
+            ch1 (list, lines.Line2D): Object of appropriate data type.
+        """
+        self._ch1 = self._verify_and_trim_data('ch1', ch1)
+
+    @property
+    def ch2(self):
+        """
+        Returns:
+            Channel 2 data.
+        """
+        return self._ch2
+
+    @ch2.setter
+    def ch2(self, ch2):
+        """
+        Sets channel 2 data.
+
+        This attrib can only be set once. If it's a subtype of list,
+        apply the data trimming, otherwise, set attrib as is.
+
+        Args:
+            ch2 (list, lines.Line2D): Object of appropriate data type.
+        """
+        self._ch2 = self._verify_and_trim_data('ch2', ch2)
+
+    def _verify_and_trim_data(self, ch_name, in_data):
+        """
+        Check the selected attr does not already contain data, and set if so.
+
+        Args:
+            ch_name (str): The ch1 or ch2 attrib where data is to be written.
+            in_data (list, lines.Line2D): Object of appropriate data type.
+
+        Returns:
+            DataArrayBase/lines.Line2D: Object of appropriate data type.
+        """
+        if getattr(self, ch_name) is not None:
+            raise DataInputException("Cannot overwrite self.{} data: '{}'."
+                                     "".format(ch_name,
+                                               getattr(self, ch_name)))
+        if isinstance(in_data, list):
+            return self._trim_mode(in_data)
+        else:
+            return in_data
 
     def __init__(self, ch1, ch2):
         """
@@ -175,7 +210,7 @@ class ChannelData(object):
         Returns:
             range: A range spanning same length as ch1.
         """
-        return range(len(self.ch1))
+        return self.ch1.x
 
     @property
     def x2(self):
@@ -183,4 +218,35 @@ class ChannelData(object):
         Returns:
             range: A range spanning same length as ch2.
         """
-        return range(len(self.ch2))
+        return self.ch2.x
+
+    @property
+    def trim_mode(self):
+        """
+        Returns:
+            class: The data trimming mode.
+        """
+        return self._trim_mode
+
+    @trim_mode.setter
+    def trim_mode(self, trim_mode):
+        """
+        Sets trim mode and applies to data.
+
+        Raises exception if underlying data is not DataArrayBase type.
+
+        Args:
+            trim_mode (class): Class name, must be subclass of DataArrayBase.
+        """
+        if issubclass(trim_mode, DataArrayBase):
+            raise TypeError("trim_mode must be a class name of subclass "
+                            "DataArrayBase. Input value = '{}'"
+                            "".format(trim_mode))
+        if (not isinstance(self.ch1, DataArrayBase)
+                or not isinstance(self.ch2, DataArrayBase)):
+            raise AttributeError("Both ch1, ch2 data must be a subtype of "
+                                 "DataArrayBase. ch1 type = '{}'; ch2 type = "
+                                 "'{}'".format(self.ch1, self.ch2))
+        self._trim_mode = trim_mode
+        self._ch1 = self._trim_mode(self._ch1)
+        self._ch2 = self._trim_mode(self._ch2)
