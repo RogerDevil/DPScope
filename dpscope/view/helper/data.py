@@ -27,7 +27,8 @@ class DataArrayBase(list, ABC):
         Calls parents' instantiation, transfers the max length cache.
         """
         super().__init__(in_data, *args, **kwargs)
-        self._max_len = getattr(in_data, '_max_len', 512)
+        self.clear()
+        self._max_len = getattr(in_data, '_max_len', 128)
 
     @property
     def data_len(self):
@@ -238,7 +239,7 @@ class ChannelData(object):
         Args:
             trim_mode (class): Class name, must be subclass of DataArrayBase.
         """
-        if issubclass(trim_mode, DataArrayBase):
+        if not issubclass(trim_mode, DataArrayBase):
             raise TypeError("trim_mode must be a class name of subclass "
                             "DataArrayBase. Input value = '{}'"
                             "".format(trim_mode))
@@ -250,3 +251,10 @@ class ChannelData(object):
         self._trim_mode = trim_mode
         self._ch1 = self._trim_mode(self._ch1)
         self._ch2 = self._trim_mode(self._ch2)
+
+    def clear(self):
+        """
+        Clears both channel buffers. Only work if both channels are lists.
+        """
+        self.ch1.clear()
+        self.ch2.clear()

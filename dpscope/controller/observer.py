@@ -3,7 +3,7 @@ from inspect import getmembers, isclass, isabstract
 import logging
 import sys
 
-from view.helper.plot_modes import DataLogger
+from view.helper.data import InfiniteDataArray, FiniteDataArray
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -77,6 +77,7 @@ class StartObserver(ViewObserverBase):
         _LOGGER.info("Start button pressed")
         stream_period_ms = self._model.stream_period_get()
         self._view.voltage_getter.period_ms = stream_period_ms
+        self._view.plot_mode.buffer.clear()
         self._model.stream_voltages_start()
         self._view.voltage_getter.start()
 
@@ -111,6 +112,7 @@ class ClearObserver(ViewObserverBase):
 
     def update(self):
         _LOGGER.info("Clear button pressed")
+        self._view.plot_mode.buffer.clear()
 
 
 class SampleModeObserver(ViewObserverBase):
@@ -123,4 +125,10 @@ class SampleModeObserver(ViewObserverBase):
         sample_mode = self._view.signals[self.channel].get()
         _LOGGER.info("'{}' selected.".format(sample_mode))
         if sample_mode == "Datalog mode":
-            self._view.plot_mode = DataLogger(self._view)
+            self._view.plot_mode.buffer_trim_mode = InfiniteDataArray
+        elif sample_mode == "Scope mode":
+            self._view.plot_mode.buffer_trim_mode = FiniteDataArray
+        else:
+            raise TypeError("Sample mode option must be one of 'Datalog "
+                            "mode', 'Scope mode'. Requested mode: '{}'."
+                            "".format(sample_mode))
