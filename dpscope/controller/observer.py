@@ -3,7 +3,8 @@ from inspect import getmembers, isclass, isabstract
 import logging
 import sys
 
-from view.helper.plot_modes import DataLogger
+from view.helper.data import InfiniteDataArray, FiniteDataArray
+from view.helper.plot_modes import TimePlot
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -67,6 +68,18 @@ class ViewObserverBase(ABC):
         """
 
 
+class WinCloseObserver(ViewObserverBase):
+    """
+    Reacting to main window being closed.
+    """
+    channel = "Window.close"
+
+    def update(self):
+        _LOGGER.info("Closing main window.")
+        self._view.observers_notify("Acquisition.Stop")
+        self._view.window.destroy()
+
+
 class StartObserver(ViewObserverBase):
     """
     Reacting to Start activation.
@@ -77,6 +90,7 @@ class StartObserver(ViewObserverBase):
         _LOGGER.info("Start button pressed")
         stream_period_ms = self._model.stream_period_get()
         self._view.voltage_getter.period_ms = stream_period_ms
+        self._view.plot_mode.buffer.clear()
         self._model.stream_voltages_start()
         self._view.voltage_getter.start()
 
@@ -111,6 +125,7 @@ class ClearObserver(ViewObserverBase):
 
     def update(self):
         _LOGGER.info("Clear button pressed")
+        self._view.plot_mode.buffer.clear()
 
 
 class SampleModeObserver(ViewObserverBase):
@@ -123,4 +138,46 @@ class SampleModeObserver(ViewObserverBase):
         sample_mode = self._view.signals[self.channel].get()
         _LOGGER.info("'{}' selected.".format(sample_mode))
         if sample_mode == "Datalog mode":
-            self._view.plot_mode = DataLogger(self._view)
+            self._view.plot_mode.buffer_trim_mode = InfiniteDataArray
+        elif sample_mode == "Scope mode":
+            self._view.plot_mode.buffer_trim_mode = FiniteDataArray
+        else:
+            raise TypeError("Sample mode option must be one of 'Datalog "
+                            "mode', 'Scope mode'. Requested mode: '{}'."
+                            "".format(sample_mode))
+
+
+class FftPlotModeObserver(ViewObserverBase):
+    """
+    Reacting to FFT checkbox being triggered.
+    """
+    channel = "Display.FFT"
+
+    def update(self):
+        fft_checkbox = self._view.signals[self.channel]
+        xy_checkbox = self._view.signals["Display.X/Y"]
+
+        if fft_checkbox.get():
+            _LOGGER.info("Activating FFT mode.")
+            xy_checkbox.set(False)
+        else:
+            _LOGGER.info("Activating time plot mode.")
+            self._view.plot_mode = TimePlot(self._view)
+
+
+class XyPlotModeObserver(ViewObserverBase):
+    """
+    Reacting to X/Y checkbox being triggered.
+    """
+    channel = "Display.X/Y"
+
+    def update(self):
+        xy_checkbox = self._view.signals[self.channel]
+        fft_checkbox = self._view.signals["Display.FFT"]
+
+        if xy_checkbox.get():
+            _LOGGER.info("Activating X/Y mode.")
+            fft_checkbox.set(False)
+        else:
+            _LOGGER.info("Activating time plot mode.")
+            self._view.plot_mode = TimePlot(self._view)

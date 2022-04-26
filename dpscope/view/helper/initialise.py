@@ -6,6 +6,8 @@ from inspect import getmembers, isclass, isabstract
 import logging
 import sys
 
+from view.helper.plot_modes import TimePlot
+
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
@@ -95,8 +97,12 @@ class StandardInitialiser(ViewInitialiserBase):
         Initialises the standard view.
         """
         _LOGGER.info("Initialising '{}' view.".format(self.view_type))
+
+        self._signal_and_notify("Display.FFT", False)
+        self._signal_and_notify("Display.X/Y", False)
+
         # Set channel selection
         self._signal_and_notify("Display.Ch1", True)
         self._signal_and_notify("Display.Ch2", True)
 
-        self._signal_and_notify("Horizontal.sample_mode", "Datalog mode")
+        self._signal_and_notify("Horizontal.sample_mode", "Scope mode")

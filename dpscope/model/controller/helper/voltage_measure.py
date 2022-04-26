@@ -151,14 +151,14 @@ class VoltageStreamer(object):
         """
         return self._voltage_stream
 
-    def __init__(self, voltage_reader, period_ms=100):
+    def __init__(self, voltage_reader, period_ms=10):
         """
         Instantiate streamer with the voltage measurer.
 
         Args:
             voltage_reader (VoltageSingleRead): Single data point reader for
             measuring voltage.
-            period_ms (int, flaot): Measurement period in msec.
+            period_ms (int, float): Measurement period in msec.
         """
         self._thread_runner = ThreadLoop(period_ms)
         self._voltage_reader = voltage_reader

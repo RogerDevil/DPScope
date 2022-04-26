@@ -32,6 +32,25 @@ class PlotModeBase(QueueObserverBase, ABC):
     _fig = None  # Holds the matplotlib figure figure.Figure()
     _window = None  # The window manager.
 
+    @property
+    def buffer_trim_mode(self):
+        """
+        Returns:
+            class: Class name of the buffer data trimming mode.
+        """
+        return self.buffer.trim_mode
+
+    @buffer_trim_mode.setter
+    def buffer_trim_mode(self, trim_mode):
+        """
+        Sets the buffer trimming mode.
+
+        Args:
+            trim_mode (class): Class (uninstantiated) representing the data
+            trimming mode.
+        """
+        self.buffer.trim_mode = trim_mode
+
     def __init__(self, view):
         """
         Sets up plot mode for streaming.
@@ -64,7 +83,7 @@ class PlotModeBase(QueueObserverBase, ABC):
         return self._window
 
 
-class DataLogger(PlotModeBase):
+class TimePlot(PlotModeBase):
     """
     Persistent plotting.
     """

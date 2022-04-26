@@ -134,14 +134,12 @@ class TkQueueGetter(object):
         else:  # Data is available in the Queue.
             self._after = self.window.after(int(0.8*self.period_ms),
                                             self.start)
-            data = []
+            data_buffer = []
             while not self._queue.empty():
-                data.append(self._queue.get(0))
-                if len(data) > 1:
-                    _LOGGER.debug("More than one data packet received: '{}'"
-                                  "".format(data))
+                data_buffer.append(self._queue.get(0))
+            for data in data_buffer:
                 for observer in self._observers:
-                    observer.update(data[-1])
+                    observer.update(data)
 
     def stop(self):
         """
