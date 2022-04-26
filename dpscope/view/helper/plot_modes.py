@@ -83,7 +83,7 @@ class PlotModeBase(QueueObserverBase, ABC):
         return self._window
 
 
-class DataLogger(PlotModeBase):
+class TimePlot(PlotModeBase):
     """
     Persistent plotting.
     """

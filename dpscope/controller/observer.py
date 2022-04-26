@@ -4,6 +4,7 @@ import logging
 import sys
 
 from view.helper.data import InfiniteDataArray, FiniteDataArray
+from view.helper.plot_modes import TimePlot
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -144,3 +145,39 @@ class SampleModeObserver(ViewObserverBase):
             raise TypeError("Sample mode option must be one of 'Datalog "
                             "mode', 'Scope mode'. Requested mode: '{}'."
                             "".format(sample_mode))
+
+
+class FftPlotModeObserver(ViewObserverBase):
+    """
+    Reacting to FFT checkbox being triggered.
+    """
+    channel = "Display.FFT"
+
+    def update(self):
+        fft_checkbox = self._view.signals[self.channel]
+        xy_checkbox = self._view.signals["Display.X/Y"]
+
+        if fft_checkbox.get():
+            _LOGGER.info("Activating FFT mode.")
+            xy_checkbox.set(False)
+        else:
+            _LOGGER.info("Activating time plot mode.")
+            self._view.plot_mode = TimePlot(self._view)
+
+
+class XyPlotModeObserver(ViewObserverBase):
+    """
+    Reacting to X/Y checkbox being triggered.
+    """
+    channel = "Display.X/Y"
+
+    def update(self):
+        xy_checkbox = self._view.signals[self.channel]
+        fft_checkbox = self._view.signals["Display.FFT"]
+
+        if xy_checkbox.get():
+            _LOGGER.info("Activating X/Y mode.")
+            fft_checkbox.set(False)
+        else:
+            _LOGGER.info("Activating time plot mode.")
+            self._view.plot_mode = TimePlot(self._view)

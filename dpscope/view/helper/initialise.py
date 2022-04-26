@@ -6,7 +6,7 @@ from inspect import getmembers, isclass, isabstract
 import logging
 import sys
 
-from view.helper.plot_modes import DataLogger
+from view.helper.plot_modes import TimePlot
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -98,11 +98,11 @@ class StandardInitialiser(ViewInitialiserBase):
         """
         _LOGGER.info("Initialising '{}' view.".format(self.view_type))
 
-        # TODO: replace with conditional start up.
-        self._view.plot_mode = DataLogger(self._view)
+        self._signal_and_notify("Display.FFT", False)
+        self._signal_and_notify("Display.X/Y", False)
 
         # Set channel selection
         self._signal_and_notify("Display.Ch1", True)
         self._signal_and_notify("Display.Ch2", True)
 
-        self._signal_and_notify("Horizontal.sample_mode", "Datalog mode")
+        self._signal_and_notify("Horizontal.sample_mode", "Scope mode")
