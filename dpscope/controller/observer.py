@@ -67,6 +67,18 @@ class ViewObserverBase(ABC):
         """
 
 
+class WinCloseObserver(ViewObserverBase):
+    """
+    Reacting to main window being closed.
+    """
+    channel = "Window.close"
+
+    def update(self):
+        _LOGGER.info("Closing main window.")
+        self._view.observers_notify("Acquisition.Stop")
+        self._view.window.destroy()
+
+
 class StartObserver(ViewObserverBase):
     """
     Reacting to Start activation.

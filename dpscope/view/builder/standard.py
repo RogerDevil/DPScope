@@ -250,12 +250,20 @@ class StandardViewBuilder(ViewBuilderBase):
     def window_make(self):
         """
         Creates Tkinter window and embed a matplotlib Figure().
+
+        Create a mechanism for observing window being closed.
         """
         self._view.view_name = "Standard"
         _LOGGER.info("Creating '{}' app window - '{}' view."
                      "".format(self.window_title, self._view.view_name))
         self._view.window = Tk()
         self._view.window.title(self.window_title)
+        # Add observer for when window is closed.
+        win_close_ch = "Window.close"
+        self._view.observers.update({win_close_ch: set()})
+        self._view.window.protocol("WM_DELETE_WINDOW",
+                                   lambda:
+                                   self._view.observers_notify(win_close_ch))
         self._view.fig = Figure()
         self._view.axes = self._view.fig.add_subplot(111)
         self._view.ch1, self._view.ch2 = self._view.axes.plot([], [], [], [])
