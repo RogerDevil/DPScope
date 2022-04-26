@@ -1,7 +1,9 @@
 from enum import Enum
 from functools import total_ordering
 import logging
+from queue import Queue
 
+from concurrent import ThreadLoop
 from model.command import CommsException
 
 # Set up logging
@@ -129,3 +131,95 @@ class VoltageSingleRead(object):
             voltages.append(multiplier * adc)
 
         return voltages
+
+
+class VoltageStreamer(object):
+    """
+    Streams voltage reading continuously into a thread queue.
+    """
+    _voltage_reader = None  # The object for performing single voltage read
+    # measurement.
+    _voltage_stream = Queue()  # Where the voltage results are placed.
+    _thread_runner = None  # The controller for running function in
+    # continuous loop.
+
+    @property
+    def voltage_stream(self):
+        """
+        Returns:
+            Queue: Queue where voltage measurements are pumped into.
+        """
+        return self._voltage_stream
+
+    def __init__(self, voltage_reader, period_ms=10):
+        """
+        Instantiate streamer with the voltage measurer.
+
+        Args:
+            voltage_reader (VoltageSingleRead): Single data point reader for
+            measuring voltage.
+            period_ms (int, float): Measurement period in msec.
+        """
+        self._thread_runner = ThreadLoop(period_ms)
+        self._voltage_reader = voltage_reader
+
+    def _voltage_acquire_c(self):
+        """
+        Periodically acquire voltages from scope.
+
+        This method is run from within a thread. Measurements are put
+        into the _voltage_stream Queue.
+        """
+        voltages = self._voltage_reader.read()
+        self.voltage_stream.put(voltages)
+
+    def _stream_queue_clear(self):
+        """
+        Removes any final data in the results stream.
+        """
+        from_buffer = []
+        while not self._voltage_stream.empty():
+            from_buffer.append(self._voltage_stream.get())
+            self._voltage_stream.task_done()
+        if len(from_buffer) > 0:
+            _LOGGER.debug("Emptying results stream during clean up: '{}'"
+                          "".format(from_buffer))
+
+    def stream_queue_get(self):
+        """
+        Returns:
+            queue.Queue: The Queue where voltages are streams to. Each
+            element is in the form of [V_ch1, V_ch2], a list of floats for
+            the 2 channels measured.
+        """
+        return self._voltage_stream
+
+    def stream_period_get(self):
+        """
+        Returns:
+            float: Streaming period.
+        """
+        return self._thread_runner.period_ms
+
+    def voltage_reader_set(self, voltage_reader):
+        """
+        Refresh the voltage reader.
+
+        Args:
+            voltage_reader (VoltageSingleRead): The controller for acquiring a
+            single voltage data point.
+        """
+        self._voltage_reader = voltage_reader
+
+    def start(self):
+        """
+        Start the voltage measuring function in a loop in a thread.
+        """
+        self._thread_runner.start(self._voltage_acquire_c)
+
+    def stop(self):
+        """
+        Stop the voltage measuring thread.
+        """
+        self._thread_runner.stop()
+        self._stream_queue_clear()
