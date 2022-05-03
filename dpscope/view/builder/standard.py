@@ -133,6 +133,8 @@ class StandardViewBuilder(ViewBuilderBase):
     _ctrl_left = None
     _ctrl_right = None
 
+    _acq_rate_controller = None
+
     @classmethod
     def _make_name(cls, container, input_label):
         """
@@ -147,6 +149,16 @@ class StandardViewBuilder(ViewBuilderBase):
             str: Signal name with the format {container_name}.{input_label}.
         """
         return "{}.{}".format(container["text"], input_label)
+
+    def __init__(self, acq_rate_ctrl):
+        """
+        Instantiate with converter for acquistion rate setting.
+
+        Args:
+            acq_rate_ctrl (AcquisitionRate): Manager for controlling data
+            acquisition rates.
+        """
+        self._acq_rate_controller = acq_rate_ctrl
 
     def _add_button(self, container, label):
         """
@@ -216,7 +228,7 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.observers.update({signal_name: set()})
         OptionMenu(container, self._view.signals[signal_name], *options,
                    command=
-                   lambda: self._view.observers_notify(signal_name)
+                   lambda x: self._view.observers_notify(signal_name)
                    ).grid(sticky=W, row=row, column=column, **grid_opt)
         self._view.signals[signal_name].set(options[0])
         _LOGGER.debug("Added option menu '{}' with accompanying signal and "
@@ -362,11 +374,9 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.hor_ctrl = LabelFrame(self._ctrl_right, text="Horizontal")
         self._view.hor_ctrl.pack(fill=BOTH, expand=1)
 
-        speeds = ["0.5 us/div", "1 us/div", "2 us/div", "5 us/div",
-                  "10 us/div", "20 us/div", "50 us/div", "0.1 ms/div",
-                  "0.2 ms/div", "0.5 ms/div", "1 ms/div", "2 ms/div",
-                  "5 ms/div", "10 ms/div", "20 ms/div", "50 ms/div",
-                  "0.1 s/div", "0.2 s/div", "0.5 s/div", "1 s/div"]
+        self._view.acq_rate = self._acq_rate_controller
+        speeds = self._view.acq_rate.speeds
+
         sample_mode_options = [RadioBtnSubOptions("Scope mode", 0, 0),
                                RadioBtnSubOptions("Datalog mode", 0, 1)]
         self._add_radio_button(self._view.hor_ctrl, "sample_mode",

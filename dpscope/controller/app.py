@@ -5,6 +5,7 @@ This is the controller from the MVC design pattern.
 """
 import logging
 
+from controller.helper.acquisition_rate import AcquisitionRate
 from controller.observer import observers_get_all
 from model.controller import DPScopeController
 from portselect import get_port
@@ -29,7 +30,7 @@ class DPScopeApp(object):
         """
         Builds a standard view.
         """
-        view_builder = Director(StandardViewBuilder())
+        view_builder = Director(StandardViewBuilder(AcquisitionRate()))
         view_builder.view_build()
         self._view = view_builder.view_get()
 

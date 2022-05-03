@@ -48,6 +48,7 @@ class View(object):
     voltage_getter = None  # Gets voltages from Queue.
 
     initialiser = None  # Manager for intialising this view.
+    acq_rate = None  # Manager for controlling acquisition rates.
 
     @property
     def plot_mode(self):
