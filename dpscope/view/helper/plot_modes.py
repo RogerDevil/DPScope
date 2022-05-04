@@ -51,6 +51,15 @@ class PlotModeBase(QueueObserverBase, ABC):
         """
         self.buffer.trim_mode = trim_mode
 
+    @property
+    def buffer_max_len(self):
+        """
+        Returns:
+            int: Max length of the data buffer array. None if using a plot
+            mode that has infinite buffer length.
+        """
+        return self.buffer.ch1.max_len
+
     def __init__(self, view):
         """
         Sets up plot mode for streaming.
@@ -65,14 +74,19 @@ class PlotModeBase(QueueObserverBase, ABC):
         self._fig = view.fig
         self._window = view.window
 
-    def _refresh_graphics_c(self):
+    def _refresh_graphics_c(self, xticks=[]):
         """
         Refresh plot area with the updated data.
 
         This is called from behind a thread.
+
+        Args:
+            xticks (list): Defines x axis tick marks in plot.
         """
         self._axes.relim()
         self._axes.autoscale_view()
+        self._axes.set_xticks(xticks)
+        self._axes.grid(len(xticks) != 0)
         self._fig.canvas.draw()
 
     def window_get(self):
@@ -105,4 +119,6 @@ class TimePlot(PlotModeBase):
             self.plot_data.ch2.set_data(self.buffer.x2, self.buffer.ch2)
         else:
             self.plot_data.ch2.set_data([], [])
-        self._refresh_graphics_c()
+        xticks = (list(range(0, self.buffer_max_len, 10))
+                  if self.buffer_max_len is not None else [])
+        self._refresh_graphics_c(xticks)

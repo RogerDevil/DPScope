@@ -218,3 +218,12 @@ class DPScopeController(object):
             float: Results measuring periodicity.
         """
         return self._voltage_streamer.stream_period_get()
+
+    def stream_period_set(self, period_ms):
+        """
+        Sets the results measuring periodicity.
+
+        Args:
+            period_ms (int, float): Measuring periodicity in ms.
+        """
+        self._voltage_streamer.stream_period_set(period_ms)

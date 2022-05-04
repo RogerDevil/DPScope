@@ -2,8 +2,7 @@ import logging
 
 from model.controller.helper.trigger import TriggerSource
 from model.controller.helper.voltage_measure import VoltageResolution
-from controller import DPScopeApp
-
+from controller.app import DPScopeApp
 
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER = logging.getLogger(__name__)
