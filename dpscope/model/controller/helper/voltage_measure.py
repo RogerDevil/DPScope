@@ -201,6 +201,15 @@ class VoltageStreamer(object):
         """
         return self._thread_runner.period_ms
 
+    def stream_period_set(self, period_ms):
+        """
+        Sets the continuous streaming time period.
+
+        Args:
+            period_ms (int, float): Time period in ms.
+        """
+        self._thread_runner.period_ms = period_ms
+
     def voltage_reader_set(self, voltage_reader):
         """
         Refresh the voltage reader.

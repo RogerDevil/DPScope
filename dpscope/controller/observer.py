@@ -194,3 +194,9 @@ class SampleSpeedObserver(ViewObserverBase):
         acq_rate_ctrl = self._view.acq_rate
         _LOGGER.info("Selected acquisition speed '{}'".format(selected_speed))
         acq_rate_ctrl.selected_speed = selected_speed
+        stream_period = acq_rate_ctrl.period_get()
+        _LOGGER.info("Setting acquisition period as '{}' ms."
+                     "".format(stream_period))
+        self._model.stream_period_set(stream_period)
+        # Reset plot
+        self._view.observers_notify("Acquisition.Clear")
