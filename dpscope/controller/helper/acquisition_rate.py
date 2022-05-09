@@ -20,7 +20,13 @@ class AcquisitionRate(object):
     # Acquisition rate options. dict key controls what gets shown in the view
     # option menu. dict value is the time period spanned across a division
     # in the data plot.
-    _rate_options = {"100 ms/div": 100,
+    _rate_options = {"1 ms/div": 1,
+                     "2 ms/div": 2,
+                     "5 ms/div": 5,
+                     "10 ms/div": 10,
+                     "20 ms/div": 20,
+                     "50 ms/div": 50,
+                     "100 ms/div": 100,
                      "200 ms/div": 200,
                      "500 ms/div": 500,
                      "1 s/div": 1000}

@@ -209,6 +209,7 @@ class VoltageStreamer(object):
             period_ms (int, float): Time period in ms.
         """
         self._thread_runner.period_ms = period_ms
+        _LOGGER.info("Voltage streaming period {}ms.".format(period_ms))
 
     def voltage_reader_set(self, voltage_reader):
         """
