@@ -158,7 +158,7 @@ class StandardViewBuilder(ViewBuilderBase):
         Args:
             acq_rate_ctrl (AcquisitionRate): Manager for controlling data
             acquisition rates.
-            gain_ctrl (GainOptions): The gain controller that maps gain
+            gain_ctrl (GainManager): The gain controller that maps gain
             options shown in view to DPScope gain settings.
         """
         self._acq_rate_controller = acq_rate_ctrl
@@ -234,7 +234,6 @@ class StandardViewBuilder(ViewBuilderBase):
                    command=
                    lambda x: self._view.observers_notify(signal_name)
                    ).grid(sticky=W, row=row, column=column, **grid_opt)
-        self._view.signals[signal_name].set(options[0])
         _LOGGER.debug("Added option menu '{}' with accompanying signal and "
                       "observer queue.".format(signal_name))
 
@@ -359,14 +358,14 @@ class StandardViewBuilder(ViewBuilderBase):
         Label(self._view.vert_ctrl, text="Ch1").grid(sticky=W, row=2, column=0)
 
         self._add_option_menu(self._view.vert_ctrl, "ch1gain",
-                              self._view.gain_options.gains, 2, 1)
+                              self._view.gain_options.ch1.gains, 2, 1)
         ch1att_options = [RadioBtnSubOptions("1:1", 2, 2),
                           RadioBtnSubOptions("1:10", 2, 3)]
         self._add_radio_button(self._view.vert_ctrl, "ch1att", ch1att_options)
 
         Label(self._view.vert_ctrl, text="Ch2").grid(sticky=W, row=4, column=0)
         self._add_option_menu(self._view.vert_ctrl, "ch2gain",
-                              self._view.gain_options.gains, 4, 1)
+                              self._view.gain_options.ch2.gains, 4, 1)
         ch2att_options = [RadioBtnSubOptions("1:1", 4, 2),
                           RadioBtnSubOptions("1:10", 4, 3)]
         self._add_radio_button(self._view.vert_ctrl, "ch2att", ch2att_options)

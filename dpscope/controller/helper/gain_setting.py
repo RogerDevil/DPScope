@@ -130,3 +130,18 @@ class GainOptions(object):
             gain_option (GainSetting): One particular gain option.
         """
         self.gain_options.update({gain_option.display_str: gain_option})
+
+
+class GainManager(object):
+    """
+    Gain settings manager for the dual channel device.
+    """
+    ch1 = None  # Channel 1 gain options
+    ch2 = None  # Channel 2 gain options
+
+    def __init__(self):
+        """
+        Creates gain options for the 2 channels.
+        """
+        self.ch1 = GainOptions()
+        self.ch2 = GainOptions()
