@@ -49,6 +49,7 @@ class View(object):
 
     initialiser = None  # Manager for intialising this view.
     acq_rate = None  # Manager for controlling acquisition rates.
+    gain_options = None  # Manager for controlling measurement gains.
 
     @property
     def plot_mode(self):
