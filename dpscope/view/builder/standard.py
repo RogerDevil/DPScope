@@ -351,8 +351,6 @@ class StandardViewBuilder(ViewBuilderBase):
 
         self._view.gain_options = self._gain_controller
 
-        gains = ["1 V/div", "0.5 V/div", "0.2 V/div", "0.1 V/div", "50 mV/div",
-                 "20 mV/div", "10 mV/div", "5 mV/div"]
         Label(self._view.vert_ctrl, text="Scale").grid(sticky=W, row=0,
                                                        column=1)
         Label(self._view.vert_ctrl,
