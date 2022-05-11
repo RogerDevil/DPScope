@@ -127,7 +127,7 @@ class VoltageSingleRead(object):
         voltages = []
         for ch, adc in enumerate(adc_vals):
             multiplier = ((max_V * pot_ratio / max_adc)
-                          * (self.pregain[ch]*self.gain[ch]))
+                          / (self.pregain[ch]*self.gain[ch]))
             voltages.append(multiplier * adc)
 
         return voltages
