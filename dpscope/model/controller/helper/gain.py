@@ -1,6 +1,6 @@
 from collections import namedtuple
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

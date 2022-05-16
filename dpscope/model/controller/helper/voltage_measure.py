@@ -5,6 +5,7 @@ from queue import Queue
 
 from concurrent import ThreadLoop
 from model.command import CommsException
+from model.controller.helper.gain import Gain, PreGain
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -87,16 +88,25 @@ class VoltageSingleRead(object):
             old_res = self.resolution
             dac_mV = 3000
             self.resolution = VoltageResolution.high
+            ch_indices = [0, 1]
             # The Set DAC DPScope commands actually works different from
             # documentation.
-            self._interface.set_dac(0, dac_mV)
-            self._interface.set_dac(1, dac_mV)
+            for ch in ch_indices:
+                self._interface.set_dac(ch, dac_mV)
+                self._interface.pre_gain(ch, 0)
+                self._interface.gain(ch, 0)
             adcs = self._interface.measure_offset()
             real_dac = sum(adcs) / 2
             _LOGGER.info("Measured ADC offsets = '{}' for DAC output = '{}"
                          "mV'".format(adcs, dac_mV))
-            self._interface.set_dac(0, 0)
-            self._interface.set_dac(1, 0)
+            gain_convert = Gain()
+            pregain_convert = PreGain()
+            for ch in ch_indices:
+                self._interface.set_dac(ch, 0)
+                self._interface.pre_gain(ch, pregain_convert.val_to_code(
+                    self.pregain[ch]))
+                self._interface.gain(ch, gain_convert.val_to_code(
+                    self.gain[ch]))
             nominal_dac = float(dac_mV)/1000 * (256 / 1.25)
             self._usb_voltage = 5. * (nominal_dac / real_dac)
             _LOGGER.info("Real USB voltage measured to be {}."
