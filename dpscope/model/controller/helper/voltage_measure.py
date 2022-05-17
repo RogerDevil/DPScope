@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from enum import Enum
 from functools import total_ordering
 import logging
@@ -5,6 +6,7 @@ from queue import Queue
 
 from concurrent import ThreadLoop
 from model.command import CommsException
+from model.controller.helper.gain import Gain, PreGain
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -84,27 +86,49 @@ class VoltageSingleRead(object):
             already been calculated).
         """
         if not self._usb_voltage:
-            old_res = self.resolution
             dac_mV = 3000
-            self.resolution = VoltageResolution.high
-            # The Set DAC DPScope commands actually works different from
-            # documentation.
-            self._interface.set_dac(0, dac_mV)
-            self._interface.set_dac(1, dac_mV)
-            adcs = self._interface.measure_offset()
+            with self._usb_context(dac_mV):
+                adcs = self._interface.measure_offset()
             real_dac = sum(adcs) / 2
             _LOGGER.info("Measured ADC offsets = '{}' for DAC output = '{}"
                          "mV'".format(adcs, dac_mV))
-            self._interface.set_dac(0, 0)
-            self._interface.set_dac(1, 0)
             nominal_dac = float(dac_mV)/1000 * (256 / 1.25)
             self._usb_voltage = 5. * (nominal_dac / real_dac)
             _LOGGER.info("Real USB voltage measured to be {}."
                          "".format(self._usb_voltage))
-            if old_res != self.resolution:
-                self.resolution = old_res
 
         return self._usb_voltage
+
+    @contextmanager
+    def _usb_context(self, dac_mV):
+        """
+        Saves and restores settings during USB voltage calibration.
+
+        Args:
+            dac_mV (int): The DAC output voltage used for calibration.
+        """
+        old_res = self.resolution
+        self.resolution = VoltageResolution.high
+        ch_indices = [0, 1]
+        # The Set DAC DPScope commands actually works different from
+        # documentation.
+        for ch in ch_indices:
+            self._interface.set_dac(ch, dac_mV)
+            self._interface.pre_gain(ch, 0)
+            self._interface.gain(ch, 0)
+
+        yield
+
+        gain_convert = Gain()
+        pregain_convert = PreGain()
+        for ch in ch_indices:
+            self._interface.set_dac(ch, 0)
+            self._interface.pre_gain(ch, pregain_convert.val_to_code(
+                self.pregain[ch]))
+            self._interface.gain(ch, gain_convert.val_to_code(
+                self.gain[ch]))
+        if old_res != self.resolution:
+            self.resolution = old_res
 
     def read(self):
         """
@@ -127,7 +151,7 @@ class VoltageSingleRead(object):
         voltages = []
         for ch, adc in enumerate(adc_vals):
             multiplier = ((max_V * pot_ratio / max_adc)
-                          * (self.pregain[ch]*self.gain[ch]))
+                          / (self.pregain[ch]*self.gain[ch]))
             voltages.append(multiplier * adc)
 
         return voltages

@@ -200,3 +200,35 @@ class SampleSpeedObserver(ViewObserverBase):
         self._model.stream_period_set(stream_period)
         # Reset plot
         self._view.observers_notify("Acquisition.Clear")
+
+
+class GainCh1Observer(ViewObserverBase):
+    """
+    Reacts to changes in Channel 1 gain.
+    """
+    channel = "Vertical.ch1gain"
+
+    def update(self):
+        gain_settings = self._view.gain_options.ch1
+        gain_settings.selected_gain = self._view.signals[self.channel].get()
+        selected_gain = gain_settings.selected_gain
+        _LOGGER.info("Ch1 gain '{}' selected from app."
+                     "".format(selected_gain.display_str))
+        self._model.gain_set(0, selected_gain.gain)
+        self._model.pregain_set(0, selected_gain.pregain)
+
+
+class GainCh2Observer(ViewObserverBase):
+    """
+    Reacts to changes in Channel 2 gain.
+    """
+    channel = "Vertical.ch2gain"
+
+    def update(self):
+        gain_settings = self._view.gain_options.ch2
+        gain_settings.selected_gain = self._view.signals[self.channel].get()
+        selected_gain = gain_settings.selected_gain
+        _LOGGER.info("Ch2 gain '{}' selected from app."
+                     "".format(selected_gain.display_str))
+        self._model.gain_set(1, selected_gain.gain)
+        self._model.pregain_set(1, selected_gain.pregain)

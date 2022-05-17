@@ -6,7 +6,8 @@ from inspect import getmembers, isclass, isabstract
 import logging
 import sys
 
-from view.helper.plot_modes import TimePlot
+from controller.helper.acquisition_rate import AcquisitionRate
+from controller.helper.gain_setting import GainOptions
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -105,4 +106,10 @@ class StandardInitialiser(ViewInitialiserBase):
         self._signal_and_notify("Display.Ch1", True)
         self._signal_and_notify("Display.Ch2", True)
 
+        default_gains = GainOptions().gains[0]
+        self._signal_and_notify("Vertical.ch1gain", default_gains)
+        self._signal_and_notify("Vertical.ch2gain", default_gains)
+
         self._signal_and_notify("Horizontal.sample_mode", "Scope mode")
+        default_acq_rate = AcquisitionRate().speeds[-1]
+        self._signal_and_notify("Horizontal.sample_speed", default_acq_rate)

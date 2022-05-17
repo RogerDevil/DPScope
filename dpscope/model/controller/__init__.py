@@ -110,15 +110,9 @@ class DPScopeController(object):
         Returns:
             int: Gain factor for the requested channel.
         """
-        try:
-            if self.voltages.gain[ch] is None:
-                self.gain_set(ch, 1)
-        except IndexError as ie:
-            raise ie("Attempting to set gain on channel {}; Channel "
-                     "specifier can only be (0, 1).".format(ch))
         return self.voltages.gain[ch]
 
-    def gain_set(self, ch, gain):
+    def gain_set(self, ch, gain_factor):
         """
         Sets gain into DPScope.
 
@@ -126,17 +120,17 @@ class DPScopeController(object):
 
         Args:
             ch (int): Channel number (0 or 1).
-            gain (int): Gain code for the requested channel.
+            gain_factor (int): Gain factor for the requested channel.
         """
-        # Sends DPScope command for setting the gain
-        self._interface.gain(ch, gain)
         # Set gain factor value in logic
         gain_convert = Gain()
-        gain_factor = gain_convert.code_to_val(gain)
+        gain_code = gain_convert.val_to_code(gain_factor)
+        # Sends DPScope command for setting the gain
+        self._interface.gain(ch, gain_code)
         try:
             self.voltages.gain[ch] = gain_factor
             _LOGGER.info("Setting channel '{}' gain code to '{}' (x{})"
-                         "".format(ch, gain, gain_factor))
+                         "".format(ch, gain_code, gain_factor))
         except IndexError as ie:
             raise ie("Attempting to set gain on channel {}; Channel "
                      "specifier can only be (0, 1).".format(ch))
@@ -162,15 +156,9 @@ class DPScopeController(object):
         Returns:
             int: Pregain factor for the requested channel.
         """
-        try:
-            if self.voltages.pregain[ch] is None:
-                self.pregain_set(ch, 1)
-        except IndexError as ie:
-            raise ie("Attempting to set gain on channel {}; Channel "
-                     "specifier can only be (0, 1).".format(ch))
         return self.voltages.pregain[ch]
 
-    def pregain_set(self, ch, pregain):
+    def pregain_set(self, ch, pregain_factor):
         """
         Sets pregain into DPScope.
 
@@ -178,17 +166,17 @@ class DPScopeController(object):
 
         Args:
             ch (int): Channel number (0 or 1).
-            pregain (int): Pregain code for the requested channel.
+            pregain_factor (int): Pregain factor for the requested channel.
         """
-        # Sends DPScope command to set pregain.
-        self._interface.pre_gain(ch, pregain)
         # Set pregain code in logic.
         pregain_convert = PreGain()
-        pregain_factor = pregain_convert.code_to_val(pregain)
+        pregain_code = pregain_convert.val_to_code(pregain_factor)
+        # Sends DPScope command to set pregain.
+        self._interface.pre_gain(ch, pregain_code)
         try:
             self.voltages.pregain[ch] = pregain_factor
             _LOGGER.info("Setting channel '{}' pre-gain code to '{}' (x{})"
-                         "".format(ch, pregain, pregain_factor))
+                         "".format(ch, pregain_code, pregain_factor))
         except IndexError as ie:
             raise ie("Attempting to set gain on channel {}; Channel "
                      "specifier can only be (0, 1).".format(ch))
