@@ -4,6 +4,8 @@ Implements different plotting modes, through an independent process.
 from abc import ABC
 import logging
 
+from numpy import arange
+
 from view.helper.data import ChannelData
 from view.helper.queue_observer import QueueObserverBase
 
@@ -87,7 +89,7 @@ class PlotModeBase(QueueObserverBase, ABC):
 
         Args:
             xticks (list): Defines x axis tick marks in plot.
-            yticks (list): Defines y axis tick marks in plot.
+            yticks (np.array): Defines y axis tick marks in plot.
         """
         self._axes.relim()
         self._axes.autoscale_view()
@@ -111,14 +113,14 @@ class TimePlot(PlotModeBase):
     def _yticks_make(self):
         """
         Returns:
-            list(float): y-axis tick marks.
+            np.array(float): y-axis tick marks.
         """
         smaller_gain = self.gain_ch1 if (self.gain_ch1 < self.gain_ch2) else\
             self.gain_ch2
         v_per_div = float(smaller_gain.mV_per_div)/1000
-        yticks = list(range(-v_per_div,
-                            float(smaller_gain.voltage_max),
-                            v_per_div))
+        yticks = arange(-v_per_div,
+                        float(smaller_gain.voltage_max) + 0.1 * v_per_div,
+                        v_per_div)
         return yticks
 
     def update(self, results):
