@@ -115,12 +115,19 @@ class TimePlot(PlotModeBase):
         Returns:
             np.array(float): y-axis tick marks.
         """
-        smaller_gain = self.gain_ch1.selected_gain if (
+        show_ch1 = self.show_ch1.get()
+        show_ch2 = self.show_ch2.get()
+        if show_ch1 and show_ch2:
+            smallest_gain = self.gain_ch1.selected_gain if (
                 self.gain_ch1.selected_gain <
                 self.gain_ch2.selected_gain) else self.gain_ch2.selected_gain
-        v_per_div = float(smaller_gain.mV_per_div)/1000
+        elif show_ch2:
+            smallest_gain = self.gain_ch2.selected_gain
+        else:
+            smallest_gain = self.gain_ch1.selected_gain
+        v_per_div = float(smallest_gain.mV_per_div)/1000
         yticks = arange(-v_per_div,
-                        float(smaller_gain.voltage_max) + 0.1 * v_per_div,
+                        float(smallest_gain.voltage_max) + 0.1 * v_per_div,
                         v_per_div)
         return yticks
 
