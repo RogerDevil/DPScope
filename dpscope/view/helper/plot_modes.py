@@ -30,8 +30,8 @@ class PlotModeBase(QueueObserverBase, ABC):
     show_ch2 = None  # Holds the GUI element that determines whether ch2 is
     # shown in plot.
 
-    gain_ch1 = None  # The selected gain setting for ch1
-    gain_ch2 = None  # The selected gain setting for ch2
+    gain_ch1 = None  # The selected gain option for ch1
+    gain_ch2 = None  # The selected gain option for ch2
 
     _axes = None  # Holds the matplotlib axes.Axes() from within the Figure.
     _fig = None  # Holds the matplotlib figure figure.Figure()
@@ -75,8 +75,8 @@ class PlotModeBase(QueueObserverBase, ABC):
         self.plot_data = ChannelData(view.ch1, view.ch2)
         self.show_ch1 = view.signals["Display.Ch1"]
         self.show_ch2 = view.signals["Display.Ch2"]
-        self.gain_ch1 = view.gain_options.ch1.selected_gain
-        self.gain_ch2 = view.gain_options.ch2.selected_gain
+        self.gain_ch1 = view.gain_options.ch1
+        self.gain_ch2 = view.gain_options.ch2
         self._axes = view.axes
         self._fig = view.fig
         self._window = view.window
@@ -115,8 +115,9 @@ class TimePlot(PlotModeBase):
         Returns:
             np.array(float): y-axis tick marks.
         """
-        smaller_gain = self.gain_ch1 if (self.gain_ch1 < self.gain_ch2) else\
-            self.gain_ch2
+        smaller_gain = self.gain_ch1.selected_gain if (
+                self.gain_ch1.selected_gain <
+                self.gain_ch2.selected_gain) else self.gain_ch2.selected_gain
         v_per_div = float(smaller_gain.mV_per_div)/1000
         yticks = arange(-v_per_div,
                         float(smaller_gain.voltage_max) + 0.1 * v_per_div,
