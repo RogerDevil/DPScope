@@ -28,6 +28,9 @@ class PlotModeBase(QueueObserverBase, ABC):
     show_ch2 = None  # Holds the GUI element that determines whether ch2 is
     # shown in plot.
 
+    gain_ch1 = None  # The selected gain setting for ch1
+    gain_ch2 = None  # The selected gain setting for ch2
+
     _axes = None  # Holds the matplotlib axes.Axes() from within the Figure.
     _fig = None  # Holds the matplotlib figure figure.Figure()
     _window = None  # The window manager.
@@ -70,11 +73,13 @@ class PlotModeBase(QueueObserverBase, ABC):
         self.plot_data = ChannelData(view.ch1, view.ch2)
         self.show_ch1 = view.signals["Display.Ch1"]
         self.show_ch2 = view.signals["Display.Ch2"]
+        self.gain_ch1 = view.gain_options.ch1.selected_gain
+        self.gain_ch2 = view.gain_options.ch2.selected_gain
         self._axes = view.axes
         self._fig = view.fig
         self._window = view.window
 
-    def _refresh_graphics_c(self, xticks=[]):
+    def _refresh_graphics_c(self, xticks=[], yticks=[]):
         """
         Refresh plot area with the updated data.
 
@@ -82,10 +87,12 @@ class PlotModeBase(QueueObserverBase, ABC):
 
         Args:
             xticks (list): Defines x axis tick marks in plot.
+            yticks (list): Defines y axis tick marks in plot.
         """
         self._axes.relim()
         self._axes.autoscale_view()
         self._axes.set_xticks(xticks)
+        self._axes.set_yticks(yticks)
         self._axes.grid(len(xticks) != 0)
         self._fig.canvas.draw()
 
@@ -101,6 +108,19 @@ class TimePlot(PlotModeBase):
     """
     Persistent plotting.
     """
+    def _yticks_make(self):
+        """
+        Returns:
+            list(float): y-axis tick marks.
+        """
+        smaller_gain = self.gain_ch1 if (self.gain_ch1 < self.gain_ch2) else\
+            self.gain_ch2
+        v_per_div = float(smaller_gain.mV_per_div)/1000
+        yticks = list(range(-v_per_div,
+                            float(smaller_gain.voltage_max),
+                            v_per_div))
+        return yticks
+
     def update(self, results):
         """
         Updates internal buffer and plot data with the latest results.
@@ -121,4 +141,4 @@ class TimePlot(PlotModeBase):
             self.plot_data.ch2.set_data([], [])
         xticks = (list(range(0, self.buffer_max_len, 10))
                   if self.buffer_max_len is not None else [])
-        self._refresh_graphics_c(xticks)
+        self._refresh_graphics_c(xticks, self._yticks_make())

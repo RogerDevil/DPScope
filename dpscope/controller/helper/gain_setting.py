@@ -2,6 +2,7 @@
 Controls how gain options are shown in view, and converted into gain and
 pre-gain settings for DPScope.
 """
+from functools import total_ordering
 import logging
 
 # Set up logging
@@ -10,6 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.DEBUG)
 
 
+@total_ordering
 class GainSetting(object):
     """
     Contains information on an individual gain setting.
@@ -63,6 +65,31 @@ class GainSetting(object):
             options.
         """
         gain_manager.gain_option_add(self)
+
+    def __eq__(self, other):
+        """
+        Returns:
+            bool: True if the cumulative gain values are the same.
+        """
+        if not isinstance(other, self.__class__):
+            raise TypeError("Object being compared '{}' is not a subtype of "
+                            "GainSetting().".format(other))
+        return (self.cumulative_gain == other.cumulative_gain)
+
+    def __ne__(self, other):
+        """
+        Returns:
+            bool: True if the cumulative gain values aren't the same.
+        """
+        return not (self == other)
+
+    def __lt__(self, other):
+        """
+        Returns:
+            bool: True if cumulative gain of current instance is less than
+            the cumulative gain of the object being compared.
+        """
+        return (self.cumulative_gain < other.cumulative_gain)
 
 
 class GainOptions(object):
