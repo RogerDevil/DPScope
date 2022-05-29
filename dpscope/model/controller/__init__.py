@@ -125,8 +125,9 @@ class DPScopeController(object):
         # Set gain factor value in logic
         gain_convert = Gain()
         gain_code = gain_convert.val_to_code(gain_factor)
-        # Sends DPScope command for setting the gain
-        self._interface.gain(ch, gain_code)
+        # Sends DPScope command for setting the gain. The DPScope MCU use
+        # 1-indexed channel labelling.
+        self._interface.gain(ch + 1, gain_code)
         try:
             self.voltages.gain[ch] = gain_factor
             _LOGGER.info("Setting channel '{}' gain code to '{}' (x{})"
@@ -171,8 +172,9 @@ class DPScopeController(object):
         # Set pregain code in logic.
         pregain_convert = PreGain()
         pregain_code = pregain_convert.val_to_code(pregain_factor)
-        # Sends DPScope command to set pregain.
-        self._interface.pre_gain(ch, pregain_code)
+        # Sends DPScope command to set pregain. The DPScope MCU use
+        # 1-indexed channel labelling.
+        self._interface.pre_gain(ch + 1, pregain_code)
         try:
             self.voltages.pregain[ch] = pregain_factor
             _LOGGER.info("Setting channel '{}' pre-gain code to '{}' (x{})"
