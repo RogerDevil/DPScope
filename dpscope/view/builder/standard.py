@@ -280,8 +280,10 @@ class StandardViewBuilder(ViewBuilderBase):
                                    lambda:
                                    self._view.observers_notify(win_close_ch))
         self._view.fig = Figure()
-        self._view.axes = self._view.fig.add_subplot(111)
-        self._view.ch1, self._view.ch2 = self._view.axes.plot([], [], [], [])
+        self._view.ax_ch1 = self._view.fig.add_subplot(111)
+        self._view.ax_ch2 = self._view.ax_ch1.twinx()
+        self._view.ch1 = self._view.ax_ch1.plot([], [])[0]
+        self._view.ch2 = self._view.ax_ch2.plot([], [])[0]
 
     def build_plot_area(self):
         """

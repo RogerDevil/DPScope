@@ -23,7 +23,8 @@ class View(object):
 
     # Handles for matplotlib objects
     fig = None  # Holds the matplotlib figure figure.Figure()
-    axes = None  # Holds the matplotlib axes.Axes() from within the Figure.
+    ax_ch1 = None  # Holds the matplotlib axes.Axes() from within the Figure.
+    ax_ch2 = None  # Holds the matplotlib axes.Axes() from within the Figure.
     ch1 = None  # Holds the matplotlib lines.Line2D() for channel 1 plotted
     # data
     ch2 = None  # Holds the matplotlib lines.Line2D() for channel 2 plotted
