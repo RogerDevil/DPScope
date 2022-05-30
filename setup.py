@@ -7,5 +7,5 @@ setup(name='dpscope',
       author_email='pepijndevos@gmail.com',
       url='https://github.com/pepijndevos/DPScope',
       packages=['dpscope'],
-      requires=["pyserial", "matplotlib"],
+      requires=["pyserial", "matplotlib", "numpy"],
      )

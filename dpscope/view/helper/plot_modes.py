@@ -4,6 +4,8 @@ Implements different plotting modes, through an independent process.
 from abc import ABC
 import logging
 
+from numpy import arange
+
 from view.helper.data import ChannelData
 from view.helper.queue_observer import QueueObserverBase
 
@@ -28,7 +30,11 @@ class PlotModeBase(QueueObserverBase, ABC):
     show_ch2 = None  # Holds the GUI element that determines whether ch2 is
     # shown in plot.
 
-    _axes = None  # Holds the matplotlib axes.Axes() from within the Figure.
+    gain_ch1 = None  # The selected gain option for ch1
+    gain_ch2 = None  # The selected gain option for ch2
+
+    _ax_ch1 = None  # Holds the matplotlib axes.Axes() from within the Figure.
+    _ax_ch2 = None  # Holds the matplotlib axes.Axes() from within the Figure.
     _fig = None  # Holds the matplotlib figure figure.Figure()
     _window = None  # The window manager.
 
@@ -70,11 +76,14 @@ class PlotModeBase(QueueObserverBase, ABC):
         self.plot_data = ChannelData(view.ch1, view.ch2)
         self.show_ch1 = view.signals["Display.Ch1"]
         self.show_ch2 = view.signals["Display.Ch2"]
-        self._axes = view.axes
+        self.gain_ch1 = view.gain_options.ch1
+        self.gain_ch2 = view.gain_options.ch2
+        self._ax_ch1 = view.ax_ch1
+        self._ax_ch2 = view.ax_ch2
         self._fig = view.fig
         self._window = view.window
 
-    def _refresh_graphics_c(self, xticks=[]):
+    def _refresh_graphics_c(self, xticks=[], yticks=[]):
         """
         Refresh plot area with the updated data.
 
@@ -82,11 +91,14 @@ class PlotModeBase(QueueObserverBase, ABC):
 
         Args:
             xticks (list): Defines x axis tick marks in plot.
+            yticks (np.array): Defines y axis tick marks in plot.
         """
-        self._axes.relim()
-        self._axes.autoscale_view()
-        self._axes.set_xticks(xticks)
-        self._axes.grid(len(xticks) != 0)
+        for index, axes in enumerate([self._ax_ch1, self._ax_ch2]):
+            axes.relim()
+            axes.autoscale_view()
+            axes.set_xticks(xticks)
+            axes.set_yticks(yticks[index])
+        self._ax_ch1.grid(len(xticks) != 0)
         self._fig.canvas.draw()
 
     def window_get(self):
@@ -101,6 +113,18 @@ class TimePlot(PlotModeBase):
     """
     Persistent plotting.
     """
+    def _yticks_make(self):
+        """
+        Returns:
+            list(np.array(float)): y-axis tick marks for ch1, ch2 readings.
+        """
+        yticks = []
+        for gain in [self.gain_ch1.selected_gain, self.gain_ch2.selected_gain]:
+            v_per_div = float(gain.mV_per_div) / 1000
+            yticks.append(arange(-v_per_div, float(gain.voltage_max) + 0.1 *
+                                 v_per_div, v_per_div))
+        return yticks
+
     def update(self, results):
         """
         Updates internal buffer and plot data with the latest results.
@@ -121,4 +145,4 @@ class TimePlot(PlotModeBase):
             self.plot_data.ch2.set_data([], [])
         xticks = (list(range(0, self.buffer_max_len, 10))
                   if self.buffer_max_len is not None else [])
-        self._refresh_graphics_c(xticks)
+        self._refresh_graphics_c(xticks, self._yticks_make())

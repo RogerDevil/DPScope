@@ -136,6 +136,9 @@ class StandardViewBuilder(ViewBuilderBase):
     _acq_rate_controller = None
     _gain_controller = None
 
+    _color_ch1 = "blue"
+    _color_ch2 = "red"
+
     @classmethod
     def _make_name(cls, container, input_label):
         """
@@ -279,9 +282,17 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.window.protocol("WM_DELETE_WINDOW",
                                    lambda:
                                    self._view.observers_notify(win_close_ch))
-        self._view.fig = Figure()
-        self._view.axes = self._view.fig.add_subplot(111)
-        self._view.ch1, self._view.ch2 = self._view.axes.plot([], [], [], [])
+        self._view.fig = Figure(figsize=(11, 8))
+        self._view.ax_ch1 = self._view.fig.add_subplot(111)
+        self._view.ax_ch1.set_ylabel("Ch 1 (V)", color=self._color_ch1)
+        self._view.ax_ch2 = self._view.ax_ch1.twinx()
+        self._view.ax_ch2.set_ylabel("Ch 2 (V)", color=self._color_ch2)
+        self._view.ch1 = self._view.ax_ch1.plot([], [],
+                                                color=self._color_ch1,
+                                                linestyle="-")[0]
+        self._view.ch2 = self._view.ax_ch2.plot([], [],
+                                                color=self._color_ch2,
+                                                linestyle="-")[0]
 
     def build_plot_area(self):
         """
