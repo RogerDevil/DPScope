@@ -133,6 +133,12 @@ class StandardViewBuilder(ViewBuilderBase):
     _ctrl_left = None
     _ctrl_right = None
 
+    _acq_rate_controller = None
+    _gain_controller = None
+
+    _color_ch1 = "blue"
+    _color_ch2 = "red"
+
     @classmethod
     def _make_name(cls, container, input_label):
         """
@@ -147,6 +153,19 @@ class StandardViewBuilder(ViewBuilderBase):
             str: Signal name with the format {container_name}.{input_label}.
         """
         return "{}.{}".format(container["text"], input_label)
+
+    def __init__(self, acq_rate_ctrl, gain_ctrl):
+        """
+        Instantiate with converter for acquisition rate setting.
+
+        Args:
+            acq_rate_ctrl (AcquisitionRate): Manager for controlling data
+            acquisition rates.
+            gain_ctrl (GainManager): The gain controller that maps gain
+            options shown in view to DPScope gain settings.
+        """
+        self._acq_rate_controller = acq_rate_ctrl
+        self._gain_controller = gain_ctrl
 
     def _add_button(self, container, label):
         """
@@ -216,9 +235,8 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.observers.update({signal_name: set()})
         OptionMenu(container, self._view.signals[signal_name], *options,
                    command=
-                   lambda: self._view.observers_notify(signal_name)
+                   lambda x: self._view.observers_notify(signal_name)
                    ).grid(sticky=W, row=row, column=column, **grid_opt)
-        self._view.signals[signal_name].set(options[0])
         _LOGGER.debug("Added option menu '{}' with accompanying signal and "
                       "observer queue.".format(signal_name))
 
@@ -264,9 +282,17 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.window.protocol("WM_DELETE_WINDOW",
                                    lambda:
                                    self._view.observers_notify(win_close_ch))
-        self._view.fig = Figure()
-        self._view.axes = self._view.fig.add_subplot(111)
-        self._view.ch1, self._view.ch2 = self._view.axes.plot([], [], [], [])
+        self._view.fig = Figure(figsize=(11, 8))
+        self._view.ax_ch1 = self._view.fig.add_subplot(111)
+        self._view.ax_ch1.set_ylabel("Ch 1 (V)", color=self._color_ch1)
+        self._view.ax_ch2 = self._view.ax_ch1.twinx()
+        self._view.ax_ch2.set_ylabel("Ch 2 (V)", color=self._color_ch2)
+        self._view.ch1 = self._view.ax_ch1.plot([], [],
+                                                color=self._color_ch1,
+                                                linestyle="-")[0]
+        self._view.ch2 = self._view.ax_ch2.plot([], [],
+                                                color=self._color_ch2,
+                                                linestyle="-")[0]
 
     def build_plot_area(self):
         """
@@ -333,8 +359,8 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.vert_ctrl = LabelFrame(self._ctrl_right, text="Vertical")
         self._view.vert_ctrl.pack(fill=BOTH, expand=1)
 
-        gains = ["1 V/div", "0.5 V/div", "0.2 V/div", "0.1 V/div", "50 mV/div",
-                 "20 mV/div", "10 mV/div", "5 mV/div"]
+        self._view.gain_options = self._gain_controller
+
         Label(self._view.vert_ctrl, text="Scale").grid(sticky=W, row=0,
                                                        column=1)
         Label(self._view.vert_ctrl,
@@ -342,13 +368,15 @@ class StandardViewBuilder(ViewBuilderBase):
                                              columnspan=2)
         Label(self._view.vert_ctrl, text="Ch1").grid(sticky=W, row=2, column=0)
 
-        self._add_option_menu(self._view.vert_ctrl, "ch1gain", gains, 2, 1)
+        self._add_option_menu(self._view.vert_ctrl, "ch1gain",
+                              self._view.gain_options.ch1.gains, 2, 1)
         ch1att_options = [RadioBtnSubOptions("1:1", 2, 2),
                           RadioBtnSubOptions("1:10", 2, 3)]
         self._add_radio_button(self._view.vert_ctrl, "ch1att", ch1att_options)
 
         Label(self._view.vert_ctrl, text="Ch2").grid(sticky=W, row=4, column=0)
-        self._add_option_menu(self._view.vert_ctrl, "ch2gain", gains, 4, 1)
+        self._add_option_menu(self._view.vert_ctrl, "ch2gain",
+                              self._view.gain_options.ch2.gains, 4, 1)
         ch2att_options = [RadioBtnSubOptions("1:1", 4, 2),
                           RadioBtnSubOptions("1:10", 4, 3)]
         self._add_radio_button(self._view.vert_ctrl, "ch2att", ch2att_options)
@@ -362,11 +390,9 @@ class StandardViewBuilder(ViewBuilderBase):
         self._view.hor_ctrl = LabelFrame(self._ctrl_right, text="Horizontal")
         self._view.hor_ctrl.pack(fill=BOTH, expand=1)
 
-        speeds = ["0.5 us/div", "1 us/div", "2 us/div", "5 us/div",
-                  "10 us/div", "20 us/div", "50 us/div", "0.1 ms/div",
-                  "0.2 ms/div", "0.5 ms/div", "1 ms/div", "2 ms/div",
-                  "5 ms/div", "10 ms/div", "20 ms/div", "50 ms/div",
-                  "0.1 s/div", "0.2 s/div", "0.5 s/div", "1 s/div"]
+        self._view.acq_rate = self._acq_rate_controller
+        speeds = self._view.acq_rate.speeds
+
         sample_mode_options = [RadioBtnSubOptions("Scope mode", 0, 0),
                                RadioBtnSubOptions("Datalog mode", 0, 1)]
         self._add_radio_button(self._view.hor_ctrl, "sample_mode",

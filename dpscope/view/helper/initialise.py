@@ -6,7 +6,8 @@ from inspect import getmembers, isclass, isabstract
 import logging
 import sys
 
-from view.helper.plot_modes import TimePlot
+from controller.helper.acquisition_rate import AcquisitionRate
+from controller.helper.gain_setting import GainOptions
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -92,17 +93,42 @@ class StandardInitialiser(ViewInitialiserBase):
         for observer in self._view.observers[ch_name]:
             observer.update()
 
+    def _channels_set(self):
+        """
+        Sets channel visibility
+        """
+        self._signal_and_notify("Display.Ch1", True)
+        self._signal_and_notify("Display.Ch2", True)
+
+    def _gains_set(self):
+        """
+        Sets gains in view.
+        """
+        default_gains = GainOptions().gains[0]
+        self._signal_and_notify("Vertical.ch1gain", default_gains)
+        self._signal_and_notify("Vertical.ch2gain", default_gains)
+
+    def _timeplot_set(self):
+        """
+        Activates time plot view
+        """
+        self._signal_and_notify("Display.FFT", False)
+        self._signal_and_notify("Display.X/Y", False)
+
+    def _timebase_set(self):
+        """
+        Sets sample mode and speed.
+        """
+        self._signal_and_notify("Horizontal.sample_mode", "Scope mode")
+        default_acq_rate = AcquisitionRate().speeds[-1]
+        self._signal_and_notify("Horizontal.sample_speed", default_acq_rate)
+
     def set(self):
         """
         Initialises the standard view.
         """
         _LOGGER.info("Initialising '{}' view.".format(self.view_type))
-
-        self._signal_and_notify("Display.FFT", False)
-        self._signal_and_notify("Display.X/Y", False)
-
-        # Set channel selection
-        self._signal_and_notify("Display.Ch1", True)
-        self._signal_and_notify("Display.Ch2", True)
-
-        self._signal_and_notify("Horizontal.sample_mode", "Scope mode")
+        self._channels_set()
+        self._gains_set()
+        self._timeplot_set()
+        self._timebase_set()

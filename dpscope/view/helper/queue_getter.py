@@ -50,8 +50,12 @@ class TkQueueGetter(object):
     def period_ms(self, period_ms):
         """
         Sets looping periodicity in concurrent function as float.
+
+        The minimum periodicity is 10ms since Tkinter can't handle
+        refreshing at high rate.
         """
-        self._period_ms = float(period_ms)
+        self._period_ms = max(period_ms, 10.0)
+        _LOGGER.info("View refresh rate set at {}ms.".format(self._period_ms))
 
     @property
     def window(self):
