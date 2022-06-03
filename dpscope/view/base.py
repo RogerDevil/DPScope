@@ -38,6 +38,8 @@ class View(object):
     vert_ctrl = None
     hor_ctrl = None
     trig_ctrl = None
+    status_data = None  # Displays measurement status
+    status_gui = None  # Displays GUI status
 
     # Define different observer channels
     observers = {}

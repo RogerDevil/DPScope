@@ -10,7 +10,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from tkinter import (Tk, Frame, LabelFrame, BOTH, Button, Label, Spinbox, X,
                      LEFT, Scale, Checkbutton, BooleanVar, W, StringVar,
-                     OptionMenu, Radiobutton, HORIZONTAL, E)
+                     OptionMenu, Radiobutton, HORIZONTAL, E, TOP, BOTTOM)
 
 from view.base import View
 from view.helper.initialise import initialiser_get
@@ -132,6 +132,7 @@ class StandardViewBuilder(ViewBuilderBase):
     _ctrl_panel = None
     _ctrl_left = None
     _ctrl_right = None
+    _status_bar = None
 
     _acq_rate_controller = None
     _gain_controller = None
@@ -298,15 +299,19 @@ class StandardViewBuilder(ViewBuilderBase):
         """
         Add matplotlib plot and control panel spaces to window.
         """
-        canvas = FigureCanvasTkAgg(self._view.fig, master=self._view.window)
+        plot_and_controls = Frame(self._view.window)
+        plot_and_controls.pack(fill=BOTH, expand=1, side=TOP)
+        canvas = FigureCanvasTkAgg(self._view.fig, master=plot_and_controls)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=BOTH, expand=1, side=LEFT)
-        self._ctrl_panel = Frame(self._view.window)
+        self._ctrl_panel = Frame(plot_and_controls)
         self._ctrl_panel.pack(side=LEFT)
         self._ctrl_left = Frame(self._ctrl_panel)
         self._ctrl_left.pack(fill=BOTH, expand=1, side=LEFT)
         self._ctrl_right = Frame(self._ctrl_panel)
         self._ctrl_right.pack(fill=BOTH, expand=1, side=LEFT)
+        self._status_bar = Frame(self._view.window)
+        self._status_bar.pack(fill=BOTH, expand=1, side=BOTTOM)
 
     def build_acquisition_controls(self):
         """
@@ -338,6 +343,17 @@ class StandardViewBuilder(ViewBuilderBase):
               ).grid(sticky=E, row=1, column=1)
         Scale(self._view.lvl_adj, from_=-100, to=100, length=300
               ).grid(sticky=E, row=1, column=2)
+
+    def build_status_bar(self):
+        """
+        Add real time status display bar.
+        """
+        self._view.status_data = Label(self._status_bar,
+                                       text="Measurement status"
+                                       ).pack(fill=X, expand=1, side=LEFT)
+        self._view.status_gui = Label(self._status_bar,
+                                      text="Frame rate status"
+                                      ).pack(fill=X, expand=1, side=LEFT)
 
     def build_display_controls(self):
         """
