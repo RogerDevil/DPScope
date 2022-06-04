@@ -348,12 +348,12 @@ class StandardViewBuilder(ViewBuilderBase):
         """
         Add real time status display bar.
         """
-        self._view.status_data = Label(self._status_bar,
-                                       text="Measurement status"
-                                       ).pack(fill=X, expand=1, side=LEFT)
-        self._view.status_gui = Label(self._status_bar,
-                                      text="Frame rate status"
-                                      ).pack(fill=X, expand=1, side=LEFT)
+        self._view.status_1 = Label(self._status_bar,
+                                    text="Measurement status"
+                                    ).pack(fill=X, expand=1, side=LEFT)
+        self._view.status_2 = Label(self._status_bar,
+                                    text="Frame rate status"
+                                    ).pack(fill=X, expand=1, side=LEFT)
 
     def build_display_controls(self):
         """

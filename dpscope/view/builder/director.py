@@ -38,8 +38,8 @@ class Director(object):
         self._builder.build_vertical_controls()
         self._builder.build_horizontal_controls()
         self._builder.build_trigger_controls()
-        self._builder.build_status_bar()
         self._builder.view_non_gui_set()
+        self._builder.build_status_bar()
 
     def view_get(self):
         """
