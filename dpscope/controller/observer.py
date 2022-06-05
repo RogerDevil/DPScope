@@ -5,6 +5,7 @@ import sys
 
 from view.helper.data import InfiniteDataArray, FiniteDataArray
 from view.helper.plot_modes import TimePlot
+from view.helper.status import MeasurementRateObserver
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -93,6 +94,7 @@ class StartObserver(ViewObserverBase):
         self._view.plot_mode.buffer.clear()
         self._model.stream_voltages_start()
         self._view.voltage_getter.start()
+        self._view.rate_observer = MeasurementRateObserver(self._view)
 
 
 class StopObserver(ViewObserverBase):
@@ -105,6 +107,7 @@ class StopObserver(ViewObserverBase):
         _LOGGER.info("Stop button pressed")
         self._model.stream_voltages_stop()
         self._view.voltage_getter.stop()
+        self._view.rate_observer = None
 
 
 class PollObserver(ViewObserverBase):

@@ -4,7 +4,7 @@ from functools import total_ordering
 import logging
 from queue import Queue
 
-from concurrent import ThreadLoop
+from common.concurrent import ThreadLoop
 from model.command import CommsException
 from model.controller.helper.gain import Gain, PreGain
 

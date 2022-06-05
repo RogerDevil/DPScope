@@ -50,9 +50,61 @@ class View(object):
     _plot_mode = None  # Holds the active plotting mode.
     voltage_getter = None  # Gets voltages from Queue.
 
-    initialiser = None  # Manager for intialising this view.
+    initialiser = None  # Manager for initialising this view.
     acq_rate = None  # Manager for controlling acquisition rates.
     gain_options = None  # Manager for controlling measurement gains.
+
+    _rate_observer = None  # Measures data acquisition rate.
+
+    def status_1_update(self, disp_txt):
+        """
+        Displays text in status slot 1.
+
+        Args:
+            disp_txt (str): Text to display.
+        """
+        self.status_1.config(text=disp_txt)
+
+    def status_2_update(self, disp_txt):
+        """
+        Displays text in status slot 2.
+
+        Args:
+            disp_txt (str): Text to display.
+        """
+        self.status_2.config(text=disp_txt)
+
+    @property
+    def rate_observer(self):
+        """
+        Returns:
+            MeasurementRateObserver: The measurement rate observer.
+        """
+        return self._rate_observer
+
+    @rate_observer.setter
+    def rate_observer(self, rate_observer):
+        """
+        Sets the rate observer and attach/detacg to the voltage getter.
+
+        Args:
+            rate_observer (MeasurementRateObserver, None): If provided with
+            a valid MeasurementRateObserver instance, this is attached to
+            the voltage getter. If None, any existing
+            MeasurementRateObserver is detached from the voltage getter.
+        """
+        if rate_observer is None:
+            if self._rate_observer is not None:
+                self.voltage_getter.detach(self._rate_observer)
+                self._rate_observer.stop()
+                self._rate_observer = None
+        else:
+            if self._rate_observer is not None:
+                self.voltage_getter.detach(self._rate_observer)
+                self._rate_observer.stop()
+            self._rate_observer = rate_observer
+            self._rate_observer.start()
+            self.voltage_getter.attach(self._rate_observer)
 
     @property
     def plot_mode(self):
